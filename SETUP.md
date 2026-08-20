@@ -1,7 +1,6 @@
 # Setup — Brady Perron Portfolio
 
-**GitHub (Codimango):** https://github.com/codimango/kokuna-webcraft-bradyperron
-**GitHub (Personal):** https://github.com/okuna/kokuna-webcraft-bradyperron
+**GitHub:** https://github.com/codimango/kokuna-webcraft-bradyperron
 **Vercel:** https://kokuna-webcraft-bradyperron.vercel.app
 **Walkthrough:** https://www.internalfb.com/intern/px/p/cvjCL
 
