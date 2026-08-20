@@ -1,8 +1,27 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import Image from "next/image";
+import { AnimatePresence, motion } from "framer-motion";
+import { useMemo, useRef } from "react";
 import { SETTINGS } from "@/lib/projects";
+import { EASE_EXPO, MODAL_TRANSITION_SECONDS } from "@/lib/motion";
+import { useModalFocus } from "@/lib/useModalFocus";
+
+function splitAnimatedWords(value: string) {
+  const words = value.split(/\s+/).filter(Boolean);
+  return words.flatMap((word, wordIndex) => {
+    const fragments = word.split(/(?<=\/)/);
+    return fragments.map((text, fragmentIndex) => ({
+      text,
+      separator:
+        fragmentIndex < fragments.length - 1
+          ? "\u200B"
+          : wordIndex < words.length - 1
+            ? " "
+            : "",
+    }));
+  });
+}
 
 export function AboutModal({
   isOpen,
@@ -11,132 +30,131 @@ export function AboutModal({
   isOpen: boolean;
   onClose: () => void;
 }) {
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const modalRef = useRef<HTMLDivElement>(null);
+  useModalFocus(isOpen, modalRef, onClose);
 
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = "hidden";
-      scrollRef.current?.scrollTo(0, 0);
-    } else {
-      document.body.style.overflow = "";
-    }
-    const handleEsc = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", handleEsc);
-    return () => {
-      document.body.style.overflow = "";
-      window.removeEventListener("keydown", handleEsc);
-    };
-  }, [isOpen, onClose]);
+  const words = useMemo(
+    () => splitAnimatedWords(SETTINGS.longDescription),
+    [],
+  );
 
-  const words = SETTINGS.longDescription.split(/(\s+)/); // keep spaces
+  const revealTransition = (delay: number) => ({
+    delay,
+    duration: 0.6,
+    ease: EASE_EXPO,
+  });
 
   return (
     <AnimatePresence>
       {isOpen && (
         <motion.div
+          ref={modalRef}
           data-modal-scroll="true"
-          ref={scrollRef}
           initial={{ y: "100%" }}
           animate={{ y: 0 }}
           exit={{ y: "100%" }}
-          transition={{
-            duration: 0.7,
-            ease: [0.22, 0.61, 0.36, 1] as const,
-          }}
-          className="fixed inset-0 z-30 bg-white text-black pointer-events-auto overflow-y-auto overscroll-contain [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+          transition={{ duration: MODAL_TRANSITION_SECONDS, ease: EASE_EXPO }}
+          className="fixed inset-0 z-50 overflow-y-auto overscroll-contain bg-white text-black [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="about-title"
         >
           <div className="flex min-h-full flex-col px-5 pb-5 md:px-12 md:pb-10">
-            <motion.header
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.3, duration: 0.5 }}
-              className="sticky top-0 z-20 -mx-5 flex items-start justify-between bg-white px-5 pb-3 pt-5 md:-mx-12 md:px-12 md:pb-4 md:pt-10"
-            >
-              <span className="about-reveal font-acumin text-[11px] md:text-xs tracking-[0.3em] text-black/40">
+            <header className="sticky top-0 z-20 -mx-5 flex items-start justify-between bg-white px-5 pb-3 pt-5 md:-mx-12 md:px-12 md:pb-4 md:pt-10">
+              <motion.span
+                initial={{ opacity: 0, y: 26 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={revealTransition(0.35)}
+                className="text-[11px] tracking-[0.3em] text-black/40 md:text-xs"
+              >
                 about — {SETTINGS.siteTitle}
-              </span>
-              <button
+              </motion.span>
+              <motion.button
+                type="button"
                 onClick={onClose}
-                className="about-reveal font-acumin text-[11px] md:text-xs tracking-[0.25em] text-black/60 hover:text-black transition-colors cursor-pointer min-h-[44px] px-2 -mr-2"
+                initial={{ opacity: 0, y: 26 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={revealTransition(0.42)}
+                className="-mr-2 -mt-3 flex min-h-11 min-w-11 items-center justify-center px-2 pt-3 text-[11px] tracking-[0.25em] text-black/60 transition-colors hover:text-black md:text-xs"
                 aria-label="Close about modal"
               >
                 close
-              </button>
-            </motion.header>
+              </motion.button>
+            </header>
 
-            <main className="mt-14 grid flex-1 grid-cols-1 gap-y-12 pb-6 md:mt-24 md:grid-cols-12 md:gap-x-10">
-              <motion.div
-                className="font-acumin text-black md:col-span-12 md:row-start-1"
+            <div className="mt-10 grid flex-1 grid-cols-1 gap-y-12 pb-6 md:mt-20 md:grid-cols-12 md:gap-x-10">
+              <h2
+                id="about-title"
+                className="max-w-[17em] text-black md:col-span-12 md:row-start-1"
                 style={{
                   fontSize: "clamp(1.7rem, 4.4vw, 3.75rem)",
                   lineHeight: 1.06,
                   letterSpacing: "-0.018em",
-                  maxWidth: "17em",
                 }}
               >
-                <p className="leading-[1.06]">
-                  {words.map((w, i) => {
-                    if (/^\s+$/.test(w)) {
-                      return <span key={i}>{w}</span>;
-                    }
-                    return (
-                      <span
-                        key={i}
-                        className="inline-block overflow-hidden align-top pb-[0.14em] -mb-[0.14em] mr-[0.2em]"
+                {words.map((word, index) => (
+                  <span key={`${word.text}-${index}`}>
+                    <span className="inline-block overflow-hidden align-top pb-[0.14em] -mb-[0.14em]">
+                      <motion.span
+                        className="about-word inline-block"
+                        initial={{ y: "115%" }}
+                        animate={{ y: 0 }}
+                        transition={{
+                          delay: 0.18 + index * 0.025,
+                          duration: 0.7,
+                          ease: EASE_EXPO,
+                        }}
                       >
-                        <motion.span
-                          initial={{ y: "110%" }}
-                          animate={{ y: 0 }}
-                          transition={{
-                            delay: 0.35 + i * 0.018,
-                            duration: 0.6,
-                            ease: [0.22, 0.61, 0.36, 1] as const,
-                          }}
-                          className="about-word inline-block"
-                        >
-                          {w}
-                        </motion.span>
-                      </span>
-                    );
-                  })}
-                </p>
-              </motion.div>
+                        {word.text}
+                      </motion.span>
+                    </span>
+                    {word.separator}
+                  </span>
+                ))}
+              </h2>
 
               <motion.figure
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.5, duration: 0.6 }}
+                initial={{ clipPath: "inset(0 0 100% 0)" }}
+                animate={{ clipPath: "inset(0 0 0% 0)" }}
+                transition={{ duration: 0.95, delay: 0.3, ease: EASE_EXPO }}
                 className="relative order-last aspect-[4/5] w-2/3 overflow-hidden bg-black/[0.04] md:order-none md:col-span-4 md:col-start-9 md:row-start-2 md:w-full md:self-start"
               >
-                <div className="absolute -inset-[5%]">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
+                <motion.div
+                  className="absolute -inset-[5%]"
+                  initial={{ scale: 1.2 }}
+                  animate={{ scale: 1, x: ["0%", "3%", "0%"], y: ["0%", "-3%", "0%"] }}
+                  transition={{
+                    scale: { duration: 1.1, ease: EASE_EXPO },
+                    x: { duration: 18, repeat: Infinity, ease: "easeInOut", delay: 1.1 },
+                    y: { duration: 18, repeat: Infinity, ease: "easeInOut", delay: 1.1 },
+                  }}
+                >
+                  <Image
                     src={SETTINGS.portrait.url}
                     alt={SETTINGS.portrait.alt}
-                    className="absolute inset-0 h-full w-full object-cover"
-                    style={{ objectPosition: "50% 20%" }}
-                    loading="lazy"
+                    fill
+                    unoptimized
+                    sizes="(max-width: 767px) 67vw, 34vw"
+                    className="object-cover"
                   />
-                </div>
+                </motion.div>
               </motion.figure>
 
               <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.55, duration: 0.5 }}
+                initial={{ opacity: 0, y: 26 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={revealTransition(0.55)}
                 className="flex flex-col justify-start md:col-span-4 md:col-start-1 md:row-start-2"
               >
-                <span className="about-reveal font-acumin text-[11px] md:text-xs tracking-[0.3em] text-black/40">
+                <span className="text-[11px] tracking-[0.3em] text-black/40 md:text-xs">
                   (contact)
                 </span>
-                <nav className="mt-5 flex flex-col md:mt-7">
+                <nav className="mt-5 flex flex-col md:mt-7" aria-label="Contact">
                   <a
                     href={SETTINGS.instagram}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="about-reveal group flex items-baseline justify-between gap-4 border-t border-black/15 py-2.5 font-acumin text-sm text-black transition-colors hover:text-black/55 md:py-3.5 md:text-xl min-h-[44px]"
+                    className="group flex min-h-11 items-center justify-between gap-4 border-t border-black/15 py-2.5 text-sm text-black transition-colors hover:text-black/55 md:py-3.5 md:text-xl"
                   >
                     <span>instagram</span>
                     <span className="text-[0.45em] transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1">
@@ -145,7 +163,7 @@ export function AboutModal({
                   </a>
                   <a
                     href={`mailto:${SETTINGS.email}`}
-                    className="about-reveal group flex items-baseline justify-between gap-4 border-y border-black/15 py-2.5 font-acumin text-sm text-black transition-colors hover:text-black/55 md:py-3.5 md:text-xl min-h-[44px]"
+                    className="group flex min-h-11 items-center justify-between gap-4 border-y border-black/15 py-2.5 text-sm text-black transition-colors hover:text-black/55 md:py-3.5 md:text-xl"
                   >
                     <span>email</span>
                     <span className="text-[0.45em] transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1">
@@ -153,20 +171,20 @@ export function AboutModal({
                     </span>
                   </a>
                 </nav>
-                <p className="about-reveal mt-6 font-acumin text-[11px] tracking-[0.3em] text-black/45 md:mt-8 md:text-xs">
+                <p className="mt-6 text-[11px] tracking-[0.3em] text-black/45 md:mt-8 md:text-xs">
                   Videographer / Editor / Director
                 </p>
               </motion.div>
-            </main>
+            </div>
 
             <motion.footer
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.65, duration: 0.5 }}
-              className="about-reveal flex items-end justify-between border-t border-black/10 pt-6 font-acumin text-[10px] tracking-[0.3em] text-black/30 md:pt-8 md:text-[11px]"
+              initial={{ opacity: 0, y: 26 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={revealTransition(0.7)}
+              className="flex items-end justify-between border-t border-black/10 pt-6 text-[10px] tracking-[0.3em] text-black/30 md:pt-8 md:text-[11px]"
             >
               <span>{SETTINGS.siteTitle}</span>
-              <span>© 2026</span>
+              <span>© {new Date().getFullYear()}</span>
             </motion.footer>
           </div>
         </motion.div>

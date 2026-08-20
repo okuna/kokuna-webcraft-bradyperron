@@ -1,72 +1,87 @@
-# Brady Perron — Replication
+# Brady Perron Portfolio
 
-**Live:** https://kokuna-webcraft-bradyperron.vercel.app (to be deployed)
-**Original:** https://www.bradyperron.com/
-**Category:** replication (portfolio single-page)
+A single-page Web Craft 1.0 replication of [bradyperron.com](https://www.bradyperron.com/). The experience is an image-led portfolio with a preloading brand sequence, two animated browsing modes, fullscreen project previews, and an about panel.
 
-## What this is
+The replica is implemented locally but has not yet been deployed, transferred, or recorded for submission.
 
-Pixel-aware replication of Brady Perron's minimal portfolio. The original is a Brooklyn-based videographer/director/editor/photographer portfolio with a full-viewport canvas + infinite scrolling typographic project list, bottom fixed identity `bradyperron` with `list`/`about` toggles, and a slide-up about modal with manifesto and contact.
+## Experience
 
-- 17 projects duplicated for infinite loop, vertical wheel/drag scroll with inertia, center-proximity scaling and letter-spacing animation 450ms cubic-bezier(0.22,0.61,0.36,1)
-- Hover near center reveals preview image behind titles (object-cover scale)
-- Bottom bar: left branded `bradyperron` with bg white/85 backdrop-blur, right list/about fixed buttons opacity-0 → 1 after loader, hover opacity 60%
-- List view toggle: simple vertical list with thumbnails, client/year/type, retains 17 titles
-- About modal: fixed inset-0 translateY(100%) → 0 slide-up, 12-col grid at md, large fluid headline clamp 1.7rem to 3.75rem, portrait 4/5, contact instagram/email with ↗ arrow hover translate, footer © 2026
-- Loader: full white overlay with bradyperron text slide-up and progress bar width 0→100% then fade 500ms
+- A white `bradyperron` loader tracks the preload state of all 17 project frames and the portrait.
+- The default grid begins with a twelve-image scatter, then keeps four media cards moving on desktop and three on mobile. Four projects use local muted video loops; the others use local poster frames. Wheel and drag input add momentum to the continuous motion.
+- The fixed `list` control switches to a looping vertical title list coupled to a depth-scaled ring of project media.
+- Every project image or title opens a fullscreen inline preview on `/`; there are no placeholder project routes.
+- Project previews contain the poster, project metadata, a smooth-scroll `more info` action, and an external YouTube or Vimeo link when one is available.
+- The `about` control opens a slide-up dialog with staggered biography text, a slowly drifting portrait, Instagram and email links, and focus containment.
+- Motion respects the user's reduced-motion preference.
 
 ## Stack
 
-- Next.js 16 App Router, React 19, TypeScript
-- Tailwind v4 with @theme inline
-- Framer Motion for drag, scroll, stagger, layout animations
+- Next.js 16 App Router and React 19
+- TypeScript
+- Tailwind CSS 4
+- Framer Motion
+- Playwright and Node's built-in test runner
 
-## Structure
+## Run locally
 
-```
-src/
-  app/
-    layout.tsx — font Acumin fallback to Helvetica, metadata bradyperron
-    page.tsx — composes Loader, Portfolio, BottomBar, AboutModal, state viewMode aboutOpen
-    globals.css — tokens, utility for about-word wrappers, scrollbar hide
-  components/
-    Loader.tsx — progress 0→100, then onComplete
-    InfiniteCanvas.tsx — infinite scroll of PROJECTS duplicated 2x, wheel/drag, center calc
-    ProjectPreview.tsx — behind layer image fade scale
-    ListView.tsx — list alternative
-    BottomBar.tsx — name pill + list/about buttons
-    AboutModal.tsx — slide-up, focus trap, word stagger, contact links
-  lib/
-    projects.ts — 17 project constants with image urls, videoUrl, client, year, type
-tests/
-  unit.test.js — checks manifest shape, project count 17, titles include quotes, bottom bar targets, about content
-  e2e.spec.ts — loader, infinite scroll, list toggle, about open/close, keyboard, responsive overflow
-public/assets/bradyperron — local portraits + thumbs (originals from Sanity CDN listed in site.toml)
+```bash
+npm install
+npm run dev
 ```
 
-## Key Fidelity Choices
+Open `http://localhost:3000`.
 
-- Preserved all 17 titles exactly including escaped quotes: "Lo & Behold", "Nuance", "I'll See You on the Other Side" etc.
-- Bottom bar positioning matches original: fixed bottom-0 p-4 container, left name, right-16 list and right-4 about both bottom-4 fixed.
-- About modal matches transform [translateY(100%)] hidden scrollbar, eyebrow tracking 0.3em, headline clamp, overflow-hidden word wrappers pb-[0.14em] -mb-[0.14em].
-- Canvas: original uses <canvas> display:block for WebGL trail; replica keeps canvas element visually but renders preview via DOM to avoid fragile shader while preserving layout (canvas stays fixed inset but pointer-events none for replica, or used for subtle grain).
-- Reduced motion respected.
+Useful checks:
 
-## Scope Cut (Intentional)
+```bash
+npm run lint
+npm run test:unit
+npm run build
+npm run test
+```
 
-Per AGENTS.md:
-- Project detail pages (/harlaut-apparel etc.) cut to avoid dead ends; titles click does not navigate to 404, instead stays page or shows image.
-- WebGL shader trail and Mux video autoplay cut for simplicity and performance; uses poster images.
-- Sanity CMS fetch cut; static lib.
+## Repository map
 
-## Scripts
+```text
+src/app/
+  layout.tsx              local Fraunces setup and document metadata
+  page.tsx                shared view and modal state
+  globals.css             global tokens, focus treatment, and reduced motion
+src/components/
+  Loader.tsx              local image preloader and branded entrance
+  InfiniteCanvas.tsx      animated media-grid view
+  ListView.tsx            looping titles and media-ring view
+  BottomBar.tsx           fixed brand and view/about controls
+  ProjectMedia.tsx        local video-loop or image rendering
+  ProjectPreview.tsx      fullscreen project dialog
+  AboutModal.tsx          fullscreen biography/contact dialog
+src/lib/
+  projects.ts             17 projects, local asset paths, and source provenance
+  motion.ts               shared timing and easing constants
+  useModalFocus.ts        focus trap, Escape close, and focus restoration
+public/assets/bradyperron/ local portrait, project frames, and preview loops
+public/fonts/              Fraunces Thin, Thin Italic, and SIL OFL license
+```
 
-- `npm run dev` — localhost:3000
-- `npm run build` — prod build 2 routes by design (/, /_not-found)
-- `npm run lint`
-- `npm run test:unit` — node:test structural checks
-- `npm run test` — Playwright browser checks
+## Assets and provenance
 
-## Assets Source
+The runtime is self-contained: project frames, four short preview loops, portrait, fonts, and browser identity icons are served from `public/`. No Sanity or Mux media is fetched over the network when the page renders.
 
-All images from Brady Perron Sanity CDN https://cdn.sanity.io/images/qrv69xlg/production/... listed in PRD.md and site.toml (43 urls, 6 copied locally). No runtime CDN beyond Next image optimization via remotePatterns. Portrait same CDN.
+- Project frames are original-site poster frames: 15 exported from the target's Mux thumbnail endpoints and two from its Sanity image CDN.
+- Four short homepage preview loops were copied from the target's public Mux 720p files for Lo & Behold, Timberland, Nuance, and Valerie Omari.
+- The portrait is the original Sanity-hosted photograph.
+- Fraunces Thin and Thin Italic were copied from the target site's `/Fraunces/` directory. The included `public/fonts/OFL.txt` records the SIL Open Font License 1.1.
+- `public/favicon.ico`, `public/icon.svg`, and `public/apple-icon.png` provide the browser and Apple touch icons declared in the page metadata.
+- Exact source URLs and local-file mappings are recorded in `site.toml` and `src/lib/projects.ts`.
+
+The photographs and videos are original-site replication material; ownership and redistribution rights beyond this evaluation were not independently verified. No media was AI-generated.
+
+The short local MP4s reproduce ambient portfolio previews; they are not full project films. A user can choose `watch film` in a project preview to open the project's public YouTube or Vimeo page. The about panel also contains the portfolio owner's Instagram and email links.
+
+## Scope
+
+Only `/` is implemented. Project detail routes, a CMS, WebGL shaders, and remote embedded Mux playback are intentionally excluded. Their entry points were replaced with inline project dialogs and local preview loops so the experience has no internal dead ends.
+
+See `SETUP.md` for operational notes and `PRD.md` for the product specification.
+
+The detailed original-versus-replica audit is in `ORIGINAL_VS_REPLICA_REPORT.md`.

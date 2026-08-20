@@ -1,5 +1,23 @@
 import type { Metadata } from "next";
+import localFont from "next/font/local";
 import "./globals.css";
+
+const fraunces = localFont({
+  src: [
+    {
+      path: "../../public/fonts/fraunces-thin.ttf",
+      weight: "100",
+      style: "normal",
+    },
+    {
+      path: "../../public/fonts/fraunces-thin-italic.ttf",
+      weight: "100",
+      style: "italic",
+    },
+  ],
+  display: "swap",
+  variable: "--font-fraunces",
+});
 
 export const metadata: Metadata = {
   title: "Brady Perron",
@@ -10,17 +28,13 @@ export const metadata: Metadata = {
     description:
       "Brady Perron is a Brooklyn-based Videographer/Director/Editor/Photographer. Rhythm. Range. Poetic. Dynamic.",
     type: "website",
-    images: [
-      {
-        url: "https://cdn.sanity.io/images/qrv69xlg/production/ce4e709dd358c6174402b1342cef9809f85035b5-3339x5035.jpg",
-        width: 3339,
-        height: 5035,
-        alt: "Brady Perron",
-      },
-    ],
   },
   icons: {
-    icon: "/favicon.ico",
+    icon: [
+      { url: "/favicon.ico", sizes: "48x48" },
+      { url: "/icon.svg", type: "image/svg+xml" },
+    ],
+    apple: "/apple-icon.png",
   },
 };
 
@@ -30,8 +44,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="antialiased">
-      <body className="min-h-screen bg-white text-black overflow-x-hidden selection:bg-black selection:text-white">
+    <html lang="en" className={`${fraunces.variable} antialiased`}>
+      <body className="min-h-screen overflow-x-hidden bg-white text-black selection:bg-black selection:text-white">
         {children}
       </body>
     </html>

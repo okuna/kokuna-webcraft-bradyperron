@@ -1,119 +1,295 @@
-import { test, expect } from "@playwright/test";
+import { expect, test, type Locator, type Page } from "@playwright/test";
+
+const PROJECT_COUNT = 17;
+const DESKTOP_CARD_COUNT = 4;
+const MOBILE_CARD_COUNT = 3;
+
+const gridCardSelector =
+  '[data-view="grid"] button[aria-label^="Open "][aria-label$=" preview"]';
+const listTitleSelector = '[data-view="list"] .project-title-row';
+const ringCardSelector =
+  '[data-view="list"] [aria-hidden="true"] button[tabindex="-1"]';
+
+async function openHome(page: Page) {
+  await page.goto("/");
+  await expect(page.locator(".loader")).toBeHidden({ timeout: 10_000 });
+  await expect(
+    page.getByRole("button", { name: "Switch to list view" }),
+  ).toBeEnabled();
+}
+
+async function waitForGridIntro(page: Page) {
+  await expect(page.locator('[data-view="grid"]')).toBeVisible();
+  await page.waitForTimeout(3_300);
+}
+
+async function inlineTransforms(locator: Locator) {
+  return locator.evaluateAll((elements) =>
+    elements.map((element) => (element as HTMLElement).style.transform),
+  );
+}
+
+async function dragSurface(page: Page, selector: string, deltaY: number) {
+  const surface = page.locator(selector);
+  const box = await surface.boundingBox();
+  expect(box).not.toBeNull();
+  if (!box) return;
+
+  const x = box.x + 20;
+  const startY = box.y + 20;
+  await page.mouse.move(x, startY);
+  await page.mouse.down();
+  await page.mouse.move(x, startY + deltaY, { steps: 12 });
+  await page.mouse.up();
+}
 
 test.describe("bradyperron replication", () => {
-  test.beforeEach(async ({ page }) => {
-    await page.goto("/");
+  test("loader completes and the desktop grid exposes four moving media cards", async ({
+    page,
+  }) => {
+    await page.goto("/", { waitUntil: "commit" });
+
+    const loader = page.locator(".loader");
+    await expect(loader).toBeVisible();
+    await expect(loader).toHaveRole("status");
+    await expect(loader.getByText("bradyperron")).toBeVisible();
+    await expect(loader.getByRole("progressbar")).toBeVisible();
+    await expect(loader).toBeHidden({ timeout: 10_000 });
+
+    await waitForGridIntro(page);
+    const cards = page.locator(`${gridCardSelector}:visible`);
+    await expect(cards).toHaveCount(DESKTOP_CARD_COUNT);
+    await expect(cards.locator("img, video")).toHaveCount(DESKTOP_CARD_COUNT);
+
+    const before = await inlineTransforms(cards);
+    await page.waitForTimeout(300);
+    expect(await inlineTransforms(cards)).not.toEqual(before);
   });
 
-  test("loader appears and disappears", async ({ page }) => {
-    await expect(page.locator(".loader")).toBeVisible();
-    await expect(page.getByText("bradyperron").first()).toBeVisible();
-    // wait for loader to fade
-    await expect(page.locator(".loader")).toBeHidden({ timeout: 5000 });
+  test("the grid responds to wheel and drag input without opening a project", async ({
+    page,
+  }) => {
+    await openHome(page);
+    await waitForGridIntro(page);
+
+    const cards = page.locator(`${gridCardSelector}:visible`);
+    const grid = page.locator('[data-view="grid"]');
+    const beforeWheel = await inlineTransforms(cards);
+    await grid.hover({ position: { x: 20, y: 20 } });
+    await page.mouse.wheel(0, 1_200);
+    await page.waitForTimeout(300);
+    expect(await inlineTransforms(cards)).not.toEqual(beforeWheel);
+
+    const beforeDrag = await inlineTransforms(cards);
+    await dragSurface(page, '[data-view="grid"]', 260);
+    await page.waitForTimeout(300);
+    expect(await inlineTransforms(cards)).not.toEqual(beforeDrag);
+    await expect(page.getByRole("dialog")).toHaveCount(0);
   });
 
-  test("bottom bar appears after loader", async ({ page }) => {
-    await page.waitForTimeout(2500);
-    await expect(page.locator(".layout-name")).toBeVisible();
-    await expect(page.getByRole("button", { name: /list view|canvas view/i })).toBeVisible();
-    await expect(page.getByRole("button", { name: /about modal/i })).toBeVisible();
+  test("list view keeps all titles in a loop and renders the media ring", async ({
+    page,
+  }) => {
+    await openHome(page);
+    await page.getByRole("button", { name: "Switch to list view" }).click();
+
+    const list = page.locator('[data-view="list"]');
+    const titles = page.locator(listTitleSelector);
+    const ringCards = page.locator(ringCardSelector);
+    await expect(list).toBeVisible();
+    await expect(titles).toHaveCount(PROJECT_COUNT);
+    await expect(ringCards).toHaveCount(PROJECT_COUNT);
+    await expect(ringCards.locator("img, video")).toHaveCount(PROJECT_COUNT);
+    const visibleRingCards = page.locator(`${ringCardSelector}:visible`);
+    const visibleRingCount = await visibleRingCards.count();
+    expect(visibleRingCount).toBeGreaterThanOrEqual(8);
+    expect(visibleRingCount).toBeLessThanOrEqual(10);
+    const activeTitle = page.locator(`${listTitleSelector}[data-active]`);
+    await expect(activeTitle).toHaveCount(1);
+
+    const ringTransforms = await inlineTransforms(ringCards);
+    expect(new Set(ringTransforms).size).toBeGreaterThan(8);
+
+    const initialTitle = await activeTitle.textContent();
+    await list.hover({ position: { x: 20, y: 20 } });
+    await page.mouse.wheel(0, 1_500);
+    await expect
+      .poll(() => activeTitle.textContent(), { timeout: 4_000 })
+      .not.toBe(initialTitle);
+
+    const titleAfterWheel = await activeTitle.textContent();
+    await dragSurface(page, '[data-view="list"]', 300);
+    await expect
+      .poll(() => activeTitle.textContent(), { timeout: 4_000 })
+      .not.toBe(titleAfterWheel);
+
+    await expect(titles).toHaveCount(PROJECT_COUNT);
+    await expect(activeTitle).toHaveCount(1);
+    await expect(
+      page.getByRole("button", { name: "Switch to grid view" }),
+    ).toBeVisible();
   });
 
-  test("infinite canvas shows project titles", async ({ page }) => {
-    await page.waitForTimeout(2500);
-    const titles = page.locator(".project-title-row");
-    await expect(titles.first()).toBeVisible({ timeout: 5000 });
-    const count = await titles.count();
-    expect(count).toBeGreaterThan(10);
+  test("a project opens as an accessible dialog and Escape restores focus", async ({
+    page,
+  }) => {
+    await openHome(page);
+    await page.getByRole("button", { name: "Switch to list view" }).click();
 
-    // check for known titles
-    await expect(page.getByText("Harlaut Apparel Winter Campaign").first()).toBeVisible();
-    await expect(page.getByText("Timberland Built for the Bold").first()).toBeVisible();
-  });
+    const trigger = page.locator(`${listTitleSelector}[data-active]`);
+    const title = (await trigger.textContent())?.trim();
+    expect(title).toBeTruthy();
+    await trigger.click();
 
-  test("scroll wheel changes offset", async ({ page }) => {
-    await page.waitForTimeout(2500);
-    const first = page.locator(".project-title-row").first();
-    await first.waitFor({ state: "visible" });
-    // wheel
-    await page.mouse.wheel(0, 500);
-    await page.waitForTimeout(400);
-    // Should still have titles visible after scroll
-    await expect(page.locator(".project-title-row").first()).toBeVisible();
-  });
+    const dialog = page.getByRole("dialog", { name: title });
+    await expect(dialog).toBeVisible();
+    await expect(dialog.getByRole("heading", { name: title })).toBeVisible();
+    await expect(
+      dialog.getByRole("button", { name: "Close project preview" }),
+    ).toBeFocused();
+    await expect(
+      dialog.getByRole("button", { name: new RegExp(`Read more about`) }),
+    ).toBeVisible();
 
-  test("list toggle switches view", async ({ page }) => {
-    await page.waitForTimeout(2500);
-    const toggle = page.getByRole("button", { name: /list view/i });
-    await toggle.click();
-    await expect(page.locator("text=Harlaut Apparel Winter Campaign").first()).toBeVisible();
-    // Should show list meta
-    await expect(page.getByText(/\(17\) projects/)).toBeVisible({ timeout: 2000 });
-
-    // Toggle back to canvas
-    const canvasBtn = page.getByRole("button", { name: /canvas view/i });
-    await canvasBtn.click();
-    await expect(page.locator(".project-title-row").first()).toBeVisible({ timeout: 2000 });
-  });
-
-  test("about modal opens and closes", async ({ page }) => {
-    await page.waitForTimeout(2500);
-    await page.getByRole("button", { name: /about modal/i }).click();
-    await expect(page.getByText(/Brooklyn-based/)).toBeVisible({ timeout: 2000 });
-    await expect(page.getByText(/Rhythm\. Range\. Poetic\. Dynamic\./)).toBeVisible();
-    await expect(page.getByRole("link", { name: /instagram/i })).toBeVisible();
-    await expect(page.getByRole("link", { name: /email/i })).toBeVisible();
-
-    // Close via button
-    await page.getByRole("button", { name: /close/i }).click();
-    await expect(page.getByText(/Brooklyn-based/)).toBeHidden({ timeout: 2000 });
-
-    // Re-open and close via Escape
-    await page.getByRole("button", { name: /about modal/i }).click();
-    await expect(page.getByText(/Brooklyn-based/)).toBeVisible({ timeout: 2000 });
     await page.keyboard.press("Escape");
-    await expect(page.getByText(/Brooklyn-based/)).toBeHidden({ timeout: 2000 });
+    await expect(dialog).toBeHidden();
+    await expect(trigger).toBeFocused();
   });
 
-  test("keyboard navigation", async ({ page }) => {
-    await page.waitForTimeout(2500);
-    await page.keyboard.press("Tab");
-    await page.keyboard.press("Tab");
-    // Focus should be on some button
-    const focused = page.locator(":focus");
-    await expect(focused).toBeVisible();
-  });
+  test("about dialog contains the source content, traps focus, and closes with Escape", async ({
+    page,
+  }) => {
+    await openHome(page);
+    const aboutTrigger = page.getByRole("button", { name: "Open about modal" });
+    await aboutTrigger.click();
 
-  test("no horizontal overflow at 320", async ({ page }) => {
-    await page.setViewportSize({ width: 320, height: 800 });
-    await page.waitForTimeout(500);
-    const overflow = await page.evaluate(() => {
-      return document.documentElement.scrollWidth > document.documentElement.clientWidth;
+    const dialog = page.getByRole("dialog", {
+      name: /Brady Perron is a Brooklyn-based/i,
     });
-    expect(overflow).toBeFalsy();
+    const closeButton = dialog.getByRole("button", {
+      name: "Close about modal",
+    });
+    const emailLink = dialog.getByRole("link", { name: /email/i });
+
+    await expect(dialog).toBeVisible();
+    await expect(dialog).toHaveAttribute("aria-modal", "true");
+    await expect(dialog.getByText(/Rhythm\. Range\. Poetic\. Dynamic\./)).toBeVisible();
+    await expect(dialog.getByRole("img", { name: /Brady Perron/i })).toBeVisible();
+    await expect(dialog.getByRole("link", { name: /instagram/i })).toHaveAttribute(
+      "href",
+      "https://instagram.com/bradyperron",
+    );
+    await expect(emailLink).toHaveAttribute("href", "mailto:brady.perron@gmail.com");
+    await expect(closeButton).toBeFocused();
+
+    await page.keyboard.press("Shift+Tab");
+    await expect(emailLink).toBeFocused();
+    await page.keyboard.press("Tab");
+    await expect(closeButton).toBeFocused();
+
+    await page.keyboard.press("Escape");
+    await expect(dialog).toBeHidden();
+    await expect(aboutTrigger).toBeFocused();
   });
 
-  test("reduced motion", async ({ page }) => {
+  test("320px layout has three cards, no overflow, and no hydration mismatch", async ({
+    page,
+  }) => {
+    const hydrationErrors: string[] = [];
+    page.on("console", (message) => {
+      const text = message.text();
+      if (
+        message.type() === "error" &&
+        (/hydration/i.test(text) || /React error #418/.test(text))
+      ) {
+        hydrationErrors.push(text);
+      }
+    });
+
+    await page.setViewportSize({ width: 320, height: 800 });
+    await openHome(page);
+    await waitForGridIntro(page);
+
+    await expect(page.locator(`${gridCardSelector}:visible`)).toHaveCount(
+      MOBILE_CARD_COUNT,
+    );
+    const dimensions = await page.evaluate(() => ({
+      viewport: document.documentElement.clientWidth,
+      document: document.documentElement.scrollWidth,
+      body: document.body.scrollWidth,
+    }));
+    expect(Math.max(dimensions.document, dimensions.body)).toBeLessThanOrEqual(
+      dimensions.viewport,
+    );
+    expect(hydrationErrors).toEqual([]);
+  });
+
+  test("reduced-motion users still receive the complete portfolio UI", async ({
+    page,
+  }) => {
     await page.emulateMedia({ reducedMotion: "reduce" });
-    await page.goto("/");
-    await page.waitForTimeout(1500);
-    // Should still render
-    await expect(page.getByText("bradyperron").first()).toBeVisible({ timeout: 5000 });
+    await openHome(page);
+
+    const grid = page.locator('[data-view="grid"]');
+    const cards = page.locator(`${gridCardSelector}:visible`);
+    await expect(grid).toBeVisible();
+    await expect(cards).toHaveCount(DESKTOP_CARD_COUNT);
+    await expect(page.locator(".layout-name")).toHaveText("bradyperron");
+    await expect(page.getByRole("button", { name: "Open about modal" })).toBeVisible();
+
+    await page.waitForTimeout(100);
+    const before = await inlineTransforms(cards);
+    await page.waitForTimeout(300);
+    expect(await inlineTransforms(cards)).toEqual(before);
   });
 
-  test("dead links check", async ({ page }) => {
-    await page.waitForTimeout(2500);
-    // All project rows in canvas view are buttons, not links, so no 404
-    // In list view, links should be external youtube or #
-    await page.getByRole("button", { name: /list view/i }).click();
-    await page.waitForTimeout(500);
-    const links = page.locator("a[href]");
-    const count = await links.count();
-    expect(count).toBeGreaterThan(5);
-    for (let i = 0; i < Math.min(count, 20); i++) {
-      const href = await links.nth(i).getAttribute("href");
-      expect(href).toBeTruthy();
-      expect(href).not.toBe("");
+  test("all rendered links are external, mail, or valid in-page targets", async ({
+    page,
+  }) => {
+    await openHome(page);
+    const hrefs = new Set<string>();
+    const collectLinks = async () => {
+      const current = await page.locator("a[href]").evaluateAll((anchors) =>
+        anchors.map((anchor) => anchor.getAttribute("href") || ""),
+      );
+      current.forEach((href) => hrefs.add(href));
+    };
+
+    await collectLinks();
+
+    await page.getByRole("button", { name: "Switch to list view" }).click();
+    await page.locator(`${listTitleSelector}[data-active]`).click();
+    await expect(page.getByRole("dialog")).toBeVisible();
+    await collectLinks();
+    await page.keyboard.press("Escape");
+    await expect(page.getByRole("dialog")).toBeHidden();
+
+    await page.getByRole("button", { name: "Open about modal" }).click();
+    await expect(page.getByRole("dialog")).toBeVisible();
+    await collectLinks();
+
+    expect(hrefs.size).toBeGreaterThanOrEqual(4);
+    for (const href of hrefs) {
+      expect(href.trim()).not.toBe("");
+      expect(href).not.toBe("#");
+      expect(href).not.toMatch(/^https?:\/\/(www\.)?bradyperron\.com/i);
+
+      if (href.startsWith("#")) {
+        const hasTarget = await page.evaluate((hash) => {
+          const id = decodeURIComponent(hash.slice(1));
+          return Boolean(id && document.getElementById(id));
+        }, href);
+        expect(hasTarget, `Missing target for ${href}`).toBe(true);
+        continue;
+      }
+
+      const target = new URL(href, page.url());
+      if (target.origin === new URL(page.url()).origin) {
+        const response = await page.request.get(target.href);
+        expect(response.status(), `${href} returned ${response.status()}`).toBeLessThan(
+          400,
+        );
+      }
     }
   });
 });

@@ -8,83 +8,150 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: "Acumin Pro", "Helvetica Neue", Helvetica, Arial, sans-serif;
-  --font-acumin: "Acumin Pro", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-sans: var(--font-fraunces), Fraunces, Georgia, serif;
+  --font-display: var(--font-fraunces), Fraunces, Georgia, serif;
 }
 
 * {
+  box-sizing: border-box;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-html {
-  scroll-behavior: smooth;
-  background: var(--background);
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-  overflow-x: hidden;
-}
-
-html::-webkit-scrollbar {
-  display: none;
-}
-
+html,
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: "Acumin Pro", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  min-height: 100%;
+  width: 100%;
   overflow-x: hidden;
+  background: var(--background);
 }
 
-/* Original site uses font-acumin class - mimic with tight tracking */
-.font-acumin {
-  font-family: "Acumin Pro", "Helvetica Neue", Helvetica, Arial, sans-serif;
-}
-
-/* Project title rows - mimic original's will-change and transitions */
-.project-title-row {
-  will-change: transform, opacity, letter-spacing, font-size;
-  transition: letter-spacing 450ms cubic-bezier(0.22, 0.61, 0.36, 1),
-    font-size 450ms cubic-bezier(0.22, 0.61, 0.36, 1),
-    color 450ms ease, opacity 350ms ease, transform 450ms cubic-bezier(0.22, 0.61, 0.36, 1);
-}
-
-.project-title-text {
-  display: inline-block;
-}
-
-/* About word staggered reveal */
-.about-word {
-  will-change: transform;
-}
-
-/* Layout name pill */
-.layout-name {
-  will-change: opacity;
-  transition: opacity 0.5s ease;
-}
-
-.layout-button {
-  will-change: opacity;
-  transition: opacity 0.3s ease;
-}
-
-/* Hide scrollbar for modal */
-[data-modal-scroll="true"] {
+html {
   scrollbar-width: none;
-  -ms-overflow-style: none;
 }
+
+html::-webkit-scrollbar,
 [data-modal-scroll="true"]::-webkit-scrollbar {
   display: none;
 }
 
-/* Selection */
+body,
+button,
+a {
+  font-family: var(--font-fraunces), Fraunces, Georgia, serif;
+  font-weight: 100;
+}
+
+body {
+  color: var(--foreground);
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:disabled {
+  pointer-events: none;
+}
+
+.font-display {
+  font-family: var(--font-fraunces), Fraunces, Georgia, serif;
+  font-weight: 100;
+}
+
+.canvas-surface {
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+
+.canvas-surface:active {
+  cursor: grabbing;
+}
+
+.project-title-row {
+  color: rgb(0 0 0 / 55%);
+  font-size: max(0.875rem, min(3vw, 1.5rem));
+  font-weight: 100;
+  letter-spacing: 0.02em;
+  line-height: 1.5;
+  transition:
+    letter-spacing 450ms cubic-bezier(0.22, 0.61, 0.36, 1),
+    font-size 450ms cubic-bezier(0.22, 0.61, 0.36, 1),
+    color 450ms ease,
+    opacity 350ms ease;
+  will-change: transform, opacity, letter-spacing, font-size;
+}
+
+.project-title-row[data-active="true"] {
+  color: #000000;
+  font-size: max(1.25rem, min(4.7vw, 2.25rem));
+  letter-spacing: 0.32em;
+}
+
+.layout-name,
+.bottom-control {
+  will-change: opacity, transform;
+}
+
+.bottom-control {
+  position: fixed;
+  bottom: 0;
+  z-index: 20;
+  display: flex;
+  height: 60px;
+  min-width: 44px;
+  align-items: flex-end;
+  justify-content: flex-end;
+  padding-bottom: 16px;
+  color: #000000;
+  font-size: 0.875rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: opacity 300ms ease;
+}
+
+.bottom-control:hover {
+  opacity: 0.6 !important;
+}
+
+.about-word {
+  will-change: transform;
+}
+
+[data-modal-scroll="true"],
+.project-modal {
+  scrollbar-width: none;
+}
+
 ::selection {
-  background: #000;
-  color: #fff;
+  background: #000000;
+  color: #ffffff;
 }
 
 :focus-visible {
-  outline: 2px solid #000;
+  outline: 2px solid #000000;
   outline-offset: 2px;
+}
+
+@media (min-width: 48rem) {
+  .bottom-control {
+    font-size: 1rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

@@ -1,40 +1,106 @@
 [site]
 name = "kokuna-webcraft-bradyperron"
-url = "https://kokuna-webcraft-bradyperron.vercel.app"
+url = ""
 original_url = "https://www.bradyperron.com/"
-walkthrough = ""
-description = "Replication of Brady Perron portfolio — Brooklyn-based videographer/director/editor/photographer. Minimal white canvas with infinite scrolling project titles, hover image previews, bottom fixed navigation (bradyperron / list / about), slide-up about modal, and initial loader. Rhythm. Range. Poetic. Dynamic."
-category = "replication"
+description = "Single-page Brady Perron portfolio replication with a preloading brand loader, local poster and video media, an animated Fraunces grid, a looping title list and media ring, fullscreen project previews, and an about panel."
+category = "webcraft-1.0"
 
 [site.tech]
-stack = ["Next.js", "Tailwind CSS", "TypeScript", "Framer Motion"]
+stack = ["Next.js 16", "React 19", "TypeScript", "Tailwind CSS 4", "Framer Motion"]
 hosting = "vercel"
 hosting_access_granted = false
 
 [site.assets]
 images = [
   "public/assets/bradyperron/brady-portrait.jpg",
-  "public/assets/bradyperron/harlaut-apparel.jpg",
-  "public/assets/bradyperron/lo-behold.jpg",
-  "public/assets/bradyperron/timberland.jpg",
-  "public/assets/bradyperron/nuance.jpg",
-  "public/assets/bradyperron/valerie-omari.jpg"
+  "public/assets/bradyperron/home/harlaut-apparel.webp",
+  "public/assets/bradyperron/home/lo-behold.webp",
+  "public/assets/bradyperron/home/timberland.webp",
+  "public/assets/bradyperron/home/nuance.webp",
+  "public/assets/bradyperron/home/valerie-omari.webp",
+  "public/assets/bradyperron/home/novos-labs.webp",
+  "public/assets/bradyperron/home/jack-moore.webp",
+  "public/assets/bradyperron/home/shy-of-summer-ii.webp",
+  "public/assets/bradyperron/home/other-side.webp",
+  "public/assets/bradyperron/home/686-jogger.webp",
+  "public/assets/bradyperron/home/erne.webp",
+  "public/assets/bradyperron/home/elaine-hersby.webp",
+  "public/assets/bradyperron/home/tnf-freeride.webp",
+  "public/assets/bradyperron/home/something-water.webp",
+  "public/assets/bradyperron/home/tnf-coalesce.webp",
+  "public/assets/bradyperron/home/attn-bite.webp",
+  "public/assets/bradyperron/home/good-bacteria.webp",
+  "public/favicon.ico",
+  "public/apple-icon.png",
 ]
-videos = []
+videos = [
+  "public/assets/bradyperron/video/lo-behold.mp4",
+  "public/assets/bradyperron/video/timberland.mp4",
+  "public/assets/bradyperron/video/nuance.mp4",
+  "public/assets/bradyperron/video/valerie-omari.mp4",
+]
 models_3d = []
-svgs = []
+svgs = ["public/icon.svg"]
+fonts = [
+  "public/fonts/fraunces-thin.ttf",
+  "public/fonts/fraunces-thin-italic.ttf",
+]
+licenses = ["public/fonts/OFL.txt"]
+
+[site.asset_sources]
+portrait = "https://cdn.sanity.io/images/qrv69xlg/production/ce4e709dd358c6174402b1342cef9809f85035b5-3339x5035.jpg"
+fonts = [
+  "https://www.bradyperron.com/Fraunces/static/Fraunces_72pt-Thin.ttf",
+  "https://www.bradyperron.com/Fraunces/static/Fraunces_72pt-ThinItalic.ttf",
+  "https://www.bradyperron.com/Fraunces/OFL.txt",
+]
+favicon = "https://www.bradyperron.com/favicon.ico?favicon.0p-z811-z3k4c.ico"
+icon = "https://www.bradyperron.com/icon.svg?icon.12uh3kqfs.9yg.svg"
+apple_icon = "https://www.bradyperron.com/apple-icon.png?apple-icon.0z1xtsgj7-38k.png"
+media_rights_note = "Original-site replication assets; ownership and redistribution rights beyond this evaluation were not independently verified. No media was AI-generated."
+project_media = [
+  { file = "public/assets/bradyperron/home/harlaut-apparel.webp", source = "https://cdn.sanity.io/images/qrv69xlg/production/d6ac3e0ce944481e0732d26436d27640e0400470-1080x1080.jpg?w=1200&fm=webp&q=82" },
+  { file = "public/assets/bradyperron/home/lo-behold.webp", source = "https://image.mux.com/pWpmeh2nG7EX6MHchaIRXBL00wr2N2zR9zZc3D00wLJH8/thumbnail.webp?width=1200&time=0.45" },
+  { file = "public/assets/bradyperron/home/timberland.webp", source = "https://image.mux.com/sfl3vxN2dMGgKu9TMWztvia9YpAmQTrdgSMdLS5EbMw/thumbnail.webp?width=1200&time=7.65" },
+  { file = "public/assets/bradyperron/home/nuance.webp", source = "https://image.mux.com/aRHAvLuj8OTimrgtjFxBzTgIUNd02zHUzW8Dr8uy8IBo/thumbnail.webp?width=1200&time=3.6" },
+  { file = "public/assets/bradyperron/home/valerie-omari.webp", source = "https://image.mux.com/JIbtVyo57Rn2Q1e00Y01r11kRQIIJ2hR00q47bAgroVfEM/thumbnail.webp?width=1200&time=0.6074195" },
+  { file = "public/assets/bradyperron/home/novos-labs.webp", source = "https://image.mux.com/bxDFA6bbADD4f6cIXOlyoaOjjcpu3CTIdKg8ECQLdIg/thumbnail.webp?width=1200&time=15.3" },
+  { file = "public/assets/bradyperron/home/jack-moore.webp", source = "https://image.mux.com/5kJQOj4lbLwo00YISA5Za4Z5asGjODrQkpRXiYQUzZSM/thumbnail.webp?width=1200&time=0.37" },
+  { file = "public/assets/bradyperron/home/shy-of-summer-ii.webp", source = "https://image.mux.com/ed2G4UAptkBwZKbZUeTdp4dY01OmXyNh7tBWS4wOOeLY/thumbnail.webp?width=1200&time=3.43" },
+  { file = "public/assets/bradyperron/home/other-side.webp", source = "https://image.mux.com/EQluCF0201sFXN003rzo1F017G5c6OX02e7Z8U6Oo02DpU4Ck/thumbnail.webp?width=1200&time=2.70534725" },
+  { file = "public/assets/bradyperron/home/686-jogger.webp", source = "https://image.mux.com/yM02barDPyENJoFERifqakgUSRlruVXnWwqTptjM01Tz4/thumbnail.webp?width=1200&time=17.73" },
+  { file = "public/assets/bradyperron/home/erne.webp", source = "https://image.mux.com/xosZAriSATvxlSNRyN3G00XxkDLxwL200X702BAs00DihwM/thumbnail.webp?width=1200&time=2.28377225" },
+  { file = "public/assets/bradyperron/home/elaine-hersby.webp", source = "https://image.mux.com/WWH4qjZS6tEpQucHsY4eFvs8q500DPYux2cHkkWOxN7w/thumbnail.webp?width=1200&time=0.51" },
+  { file = "public/assets/bradyperron/home/tnf-freeride.webp", source = "https://image.mux.com/5LyfaAhx9ru01QhWl8WRJDGAk43yDqQMxHxCnZPPsZLg/thumbnail.webp?width=1200&time=1.55" },
+  { file = "public/assets/bradyperron/home/something-water.webp", source = "https://image.mux.com/HmKDMLG98KmDiDgBHkEGY83xl9EkNgCMsgDgX9IIcnE/thumbnail.webp?width=1200&time=1.72" },
+  { file = "public/assets/bradyperron/home/tnf-coalesce.webp", source = "https://image.mux.com/XRsKtCiv7obu8vEyNi5yAh8j0200pJpk5Hrfypj7ufHmw/thumbnail.webp?width=1200&time=4.37" },
+  { file = "public/assets/bradyperron/home/attn-bite.webp", source = "https://cdn.sanity.io/images/qrv69xlg/production/ebd23bed6589565e72b0d01f75246af6662faef7-1920x1080.jpg?w=1200&fm=webp&q=82" },
+  { file = "public/assets/bradyperron/home/good-bacteria.webp", source = "https://image.mux.com/KZL902VCGPzwZEEFhVyGWTMdQ6CnsilqWZTjq1008vIBY/thumbnail.webp?width=1200&time=5" },
+]
+preview_videos = [
+  { file = "public/assets/bradyperron/video/lo-behold.mp4", source = "https://stream.mux.com/pWpmeh2nG7EX6MHchaIRXBL00wr2N2zR9zZc3D00wLJH8/720p.mp4" },
+  { file = "public/assets/bradyperron/video/timberland.mp4", source = "https://stream.mux.com/sfl3vxN2dMGgKu9TMWztvia9YpAmQTrdgSMdLS5EbMw/720p.mp4" },
+  { file = "public/assets/bradyperron/video/nuance.mp4", source = "https://stream.mux.com/aRHAvLuj8OTimrgtjFxBzTgIUNd02zHUzW8Dr8uy8IBo/720p.mp4" },
+  { file = "public/assets/bradyperron/video/valerie-omari.mp4", source = "https://stream.mux.com/JIbtVyo57Rn2Q1e00Y01r11kRQIIJ2hR00q47bAgroVfEM/720p.mp4" },
+]
 
 [site.prd]
 file = "PRD.md"
 setup = "npm install && npm run dev"
-backend = "Static site, no backend"
+backend = "Static single-page application; no backend or runtime CMS"
 
 [[screenshots]]
 route = "/"
-file = "screenshots/desktop-home.png"
+file = "screenshots/home-desktop.png"
 device = "desktop"
+side = "replica"
 
 [[screenshots]]
 route = "/"
-file = "screenshots/mobile-home.png"
+file = "screenshots/home-mobile.png"
 device = "mobile"
+side = "replica"
+
+[task]
+format = "web_craft"
+workstream = "web_craft"

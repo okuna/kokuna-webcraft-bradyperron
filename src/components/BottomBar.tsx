@@ -1,8 +1,9 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { EASE_OUT } from "@/lib/motion";
 
-type ViewMode = "canvas" | "list";
+export type ViewMode = "grid" | "list";
 
 export function BottomBar({
   visible,
@@ -17,42 +18,48 @@ export function BottomBar({
 }) {
   return (
     <>
-      <div className="fixed bottom-0 left-0 right-0 z-20 p-4 pointer-events-none">
-        <motion.h1
-          initial={{ opacity: 0 }}
-          animate={{ opacity: visible ? 1 : 0 }}
-          transition={{ duration: 0.5, ease: "easeOut", delay: 0.2 }}
-          className="layout-name font-acumin text-xl md:text-3xl text-black bg-white/85 backdrop-blur-md inline-block px-2 py-1"
+      <header aria-label="Portfolio identity" aria-hidden={!visible}>
+        <div className="pointer-events-none fixed bottom-0 left-0 right-0 z-20 p-4">
+          <motion.h1
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: visible ? 1 : 0, y: visible ? 0 : 20 }}
+            transition={{ duration: 0.8, ease: EASE_OUT, delay: 0.5 }}
+            className="layout-name bg-white/85 font-display text-xl leading-7 text-black backdrop-blur-md md:text-3xl md:leading-9"
+          >
+            bradyperron
+          </motion.h1>
+        </div>
+      </header>
+
+      <footer aria-label="Portfolio controls" aria-hidden={!visible}>
+        <motion.button
+          type="button"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: visible ? 1 : 0, y: visible ? 0 : 20 }}
+          transition={{ duration: 0.8, ease: EASE_OUT, delay: 0.6 }}
+          onClick={onToggleView}
+          disabled={!visible}
+          aria-label={
+            viewMode === "grid" ? "Switch to list view" : "Switch to grid view"
+          }
+          className="bottom-control right-16"
         >
-          bradyperron
-        </motion.h1>
-      </div>
+          {viewMode === "grid" ? "list" : "grid"}
+        </motion.button>
 
-      <motion.button
-        initial={{ opacity: 0 }}
-        animate={{ opacity: visible ? 1 : 0 }}
-        transition={{ duration: 0.5, ease: "easeOut", delay: 0.3 }}
-        onClick={onToggleView}
-        aria-label={
-          viewMode === "canvas" ? "Switch to list view" : "Switch to canvas view"
-        }
-        className="layout-button fixed bottom-4 right-16 z-20 pointer-events-auto font-acumin text-black text-sm md:text-base leading-none hover:opacity-60 transition-opacity cursor-pointer"
-        style={{ minHeight: "44px", display: "flex", alignItems: "center" }}
-      >
-        {viewMode === "canvas" ? "list" : "canvas"}
-      </motion.button>
-
-      <motion.button
-        initial={{ opacity: 0 }}
-        animate={{ opacity: visible ? 1 : 0 }}
-        transition={{ duration: 0.5, ease: "easeOut", delay: 0.35 }}
-        onClick={onOpenAbout}
-        aria-label="Open about modal"
-        className="layout-button fixed bottom-4 right-4 z-20 pointer-events-auto font-acumin text-black text-sm md:text-base leading-none hover:opacity-60 transition-opacity cursor-pointer"
-        style={{ minHeight: "44px", display: "flex", alignItems: "center" }}
-      >
-        about
-      </motion.button>
+        <motion.button
+          type="button"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: visible ? 1 : 0, y: visible ? 0 : 20 }}
+          transition={{ duration: 0.8, ease: EASE_OUT, delay: 0.7 }}
+          onClick={onOpenAbout}
+          disabled={!visible}
+          aria-label="Open about modal"
+          className="bottom-control right-4"
+        >
+          about
+        </motion.button>
+      </footer>
     </>
   );
 }

@@ -14,39 +14,31 @@
         "replica": "/",
         "original": "/"
       }
-    },
-    {
-      "name": "project",
-      "paths": {
-        "replica": "/project/harlaut-apparel",
-        "original": "/harlaut-apparel"
-      }
     }
   ],
   "breakpoints": [
-    { "name": "480-mobile", "width": 480, "height": 812, "mobile": true },
+    { "name": "390-mobile", "width": 390, "height": 844, "mobile": true },
     { "name": "768-tablet", "width": 768, "height": 1024, "mobile": true },
-    { "name": "1200-large", "width": 1200, "height": 900, "mobile": false },
-    { "name": "1440-xl", "width": 1440, "height": 900, "mobile": false },
-    { "name": "1920-xxl", "width": 1920, "height": 1080, "mobile": false }
+    { "name": "1440-desktop", "width": 1440, "height": 900, "mobile": false },
+    { "name": "1920-wide", "width": 1920, "height": 1080, "mobile": false }
   ],
   "compare": {
-    "submitBreakpoints": ["480-mobile", "1440-xl"],
+    "submitBreakpoints": ["390-mobile", "1440-desktop"],
     "outputDir": "screenshots",
-    "checklist": "docs/comparison-checklist.md",
     "omissions": {
       "home": {
-        "mobile": [],
-        "desktop": []
-      },
-      "project": {
         "mobile": [],
         "desktop": []
       }
     },
     "navComparison": {
       "enabled": true,
-      "checks": ["logo-position", "menu-items", "active-states", "mobile-hamburger", "sticky-behavior"]
+      "checks": [
+        "brand-position",
+        "view-toggle",
+        "about-control",
+        "fixed-bottom-positioning"
+      ]
     },
     "animationComparison": {
       "enabled": true,
@@ -57,13 +49,21 @@
     "targets": [
       {
         "page": "home",
-        "selectors": [".project-title-row", ".layout-name", ".layout-button"]
+        "selectors": [
+          ".loader",
+          "[data-view=\"grid\"]",
+          "[data-view=\"list\"]",
+          ".layout-name",
+          ".bottom-control",
+          ".project-modal",
+          "[data-modal-scroll=\"true\"]"
+        ]
       }
     ],
-    "breakpoints": ["480-mobile", "1440-xl"],
+    "breakpoints": ["390-mobile", "1440-desktop"],
     "outputDir": "screenshots/animations",
     "hover": {
-      "selectors": ["a", "button", ".project-title-row", "[data-hover]"],
+      "selectors": ["button", "a", ".bottom-control"],
       "burstFrames": 5,
       "burstInterval": 100,
       "cooldown": 300,
@@ -74,7 +74,12 @@
       "settleTime": 500,
       "burstFrames": 3,
       "burstInterval": 150,
-      "selectors": ["[data-animate]", ".animate-on-scroll"]
+      "selectors": [
+        "[data-view=\"grid\"]",
+        "[data-view=\"list\"]",
+        ".project-modal",
+        "[data-modal-scroll=\"true\"]"
+      ]
     }
   }
 }

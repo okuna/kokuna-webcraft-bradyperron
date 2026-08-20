@@ -1,72 +1,110 @@
-# Setup — Brady Perron Replica
+# Setup — Brady Perron Portfolio
 
-## Overview
-Replication of https://www.bradyperron.com/ — minimal portfolio with infinite scrolling project titles, bottom fixed navigation, about modal, and loader.
+## Requirements
 
-Live: https://kokuna-webcraft-bradyperron.vercel.app (to be deployed)
-Original: https://www.bradyperron.com/
+- Node.js 20.9 or newer
+- npm 9 or newer
 
-Tech: Next.js 16 App Router, Tailwind v4, TypeScript, Framer Motion, Playwright
+The application is static and requires no environment variables, API keys, database, or backend service. `.env.example` is intentionally empty apart from its explanatory comment.
 
-## Prerequisites
-- Node >= 20.9
-- npm >= 9
+## Local development
 
-## Env
-No keys. Static site.
-```bash
-cp .env.example .env
-```
-
-## Local
 ```bash
 npm install
 npm run dev
-# http://localhost:3000
 ```
 
-## Build
+Open `http://localhost:3000`.
+
+## Production build
+
 ```bash
 npm run build
 npm start
-# Outputs / and /_not-found by design
 ```
 
-## Tests
+The application exposes only `/`; Next.js also generates its framework-level not-found route.
+
+## Validation
+
 ```bash
+npm run lint
 npm run test:unit
+npm run build
 npm run test
 ```
 
-## Structure
-```
-src/app/
-  layout.tsx — metadata, Acumin fallback fonts, overflow-x-hidden
-  page.tsx — state for loaderDone, viewMode (canvas/list), aboutOpen, activeIndex
-  globals.css — brand tokens, scrollbar hide, about-word utilities
-src/components/
-  Loader — simulates progress 0→100 with interval, then fade
-  InfiniteCanvas — wheel + drag infinite list, duplication 2x for loop
-  ProjectPreview — absolute inset preview image layer behind titles
-  ListView — vertical list alternative
-  BottomBar — bradyperron pill + list/about buttons fixed bottom
-  AboutModal — slide-up transform, focus trap, stagger words, contact links
-src/lib/projects.ts — 17 projects
-public/assets/bradyperron — local images
-```
+The Playwright configuration builds the app, starts the production server on the isolated port `4173`, and refuses to reuse an existing server.
+
+## Runtime behavior
+
+The loader preloads the 17 local project frames and local portrait before revealing the interface. The default view is a continuously moving media grid controlled by the mouse wheel or pointer drag. Four projects replace their poster with a muted local video loop when active. The `list` control switches to a looping title list and synchronized media ring. Selecting media or a title opens a fullscreen project dialog; `about` opens a separate biography dialog. Both dialogs trap focus, close with Escape, restore focus, and leave the rest of the page inert while open.
+
+The interface uses Framer Motion for the loader, view transitions, grid/list gestures, project dialog, and about reveal. A shared `MotionConfig` and CSS media query respect `prefers-reduced-motion`.
+
+## Asset provenance
+
+All visual and font assets used at runtime are committed locally. No image, font, Mux, or CMS network request is needed to render the site.
+
+### Project frames
+
+The 17 files under `public/assets/bradyperron/home/` are original-site poster frames. Fifteen were downloaded from the target's `image.mux.com` thumbnail endpoints. The Harlaut Apparel and ATTN for bite. frames were exported from the target's Sanity CDN as 1200px WebP files. Each exact local-file/source-URL pair is recorded in `site.toml`; the matching source URL is also stored beside each project in `src/lib/projects.ts`.
+
+### Preview loops
+
+Four exact public Mux 720p files from the target are stored locally and play muted, looped, and inline:
+
+- `public/assets/bradyperron/video/lo-behold.mp4` from `https://stream.mux.com/pWpmeh2nG7EX6MHchaIRXBL00wr2N2zR9zZc3D00wLJH8/720p.mp4`
+- `public/assets/bradyperron/video/timberland.mp4` from `https://stream.mux.com/sfl3vxN2dMGgKu9TMWztvia9YpAmQTrdgSMdLS5EbMw/720p.mp4`
+- `public/assets/bradyperron/video/nuance.mp4` from `https://stream.mux.com/aRHAvLuj8OTimrgtjFxBzTgIUNd02zHUzW8Dr8uy8IBo/720p.mp4`
+- `public/assets/bradyperron/video/valerie-omari.mp4` from `https://stream.mux.com/JIbtVyo57Rn2Q1e00Y01r11kRQIIJ2hR00q47bAgroVfEM/720p.mp4`
+
+### Portrait
+
+- Local: `public/assets/bradyperron/brady-portrait.jpg`
+- Source: `https://cdn.sanity.io/images/qrv69xlg/production/ce4e709dd358c6174402b1342cef9809f85035b5-3339x5035.jpg`
+
+### Typography
+
+- `public/fonts/fraunces-thin.ttf` from `https://www.bradyperron.com/Fraunces/static/Fraunces_72pt-Thin.ttf`
+- `public/fonts/fraunces-thin-italic.ttf` from `https://www.bradyperron.com/Fraunces/static/Fraunces_72pt-ThinItalic.ttf`
+- `public/fonts/OFL.txt` from `https://www.bradyperron.com/Fraunces/OFL.txt`
+
+The font is Fraunces, copyright 2018 The Fraunces Project Authors, licensed under SIL Open Font License 1.1.
+
+### Icons
+
+- `public/favicon.ico` from `https://www.bradyperron.com/favicon.ico?favicon.0p-z811-z3k4c.ico`
+- `public/icon.svg` from `https://www.bradyperron.com/icon.svg?icon.12uh3kqfs.9yg.svg`
+- `public/apple-icon.png` from `https://www.bradyperron.com/apple-icon.png?apple-icon.0z1xtsgj7-38k.png`
+
+All three are declared through the Next.js metadata API for browser and Apple touch identity.
+
+### External user-initiated links
+
+Project dialogs may open public YouTube or Vimeo film pages. The about dialog may open Instagram or the visitor's email client. These destinations are never loaded automatically by the replica.
+
+## Authorship and replication notes
+
+- Sourced from the original portfolio: project names and metadata, poster frames, four preview loops, portrait, Fraunces files, icons, biography, and contact destinations.
+- Created for this repository: the Next.js/React implementation, Framer Motion behavior, responsive layout, accessible dialogs, tests, and repository documentation.
+- No imagery or video was AI-generated.
+- Original-site photographs and videos are included for this replication evaluation; ownership and redistribution rights beyond that use were not independently verified.
+- Project detail routes, the original WebGL implementation, CMS access, and remote embedded streaming were deliberately omitted. Project content remains accessible through inline dialogs on `/`, with four short preview videos served locally.
 
 ## Deployment
-- Vercel: `vercel --prod`
-- Firewall: allow Meta IPs 163.114.128.0/20, 199.201.64.0/22 if needed
-- Transfer to AAI - Web Craft org, set hosting_access_granted true in site.toml
 
-## Assets
-From https://cdn.sanity.io/images/qrv69xlg/production/... — 43 images discovered, 6 copied locally. No runtime CDN beyond next/image remotePatterns. Documented in site.toml and PRD.
+Deployment has not been completed. Before submission, deploy privately to Vercel, publish the Meta-only firewall rules, transfer the project to the AAI -Web Craft team, reconnect the repository, then fill `site.url` and set `site.tech.hosting_access_granted = true` in `site.toml`.
 
-## Validation
-```bash
-npm run build
-npm run lint
-npm run test:unit
-npm audit --omit=dev
-```
+## Screenshots
+
+The checked-in home captures are:
+
+- `screenshots/home-desktop.png` at 1440×900.
+- `screenshots/home-mobile.png` at 390×844.
+
+Both are declared for `/` in `site.toml`.
+
+## Narration / Walkthrough Videos
+
+Not recorded yet. Before submission, upload the narrated walkthrough to `https://pxl.cl` and add the final URL here.

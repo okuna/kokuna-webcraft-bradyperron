@@ -5,8 +5,11 @@ export type Project = {
   client: string;
   year: string;
   type: string;
+  description?: string;
   videoUrl?: string;
+  previewVideoUrl?: string;
   imageUrl: string;
+  sourceUrl: string;
   width: number;
   height: number;
 };
@@ -16,14 +19,15 @@ export const PROJECTS: Project[] = [
     id: "harlaut-apparel",
     slug: "harlaut-apparel",
     title: "Harlaut Apparel Winter Campaign",
-    client: "Harlaut Apparel",
+    client: "Harlaut Apparel Winter Campaign",
     year: "2024",
-    type: "",
+    type: "Campaign",
     videoUrl: "https://www.youtube.com/watch?v=-gETTd7vTrE",
-    imageUrl:
+    imageUrl: "/assets/bradyperron/home/harlaut-apparel.webp",
+    sourceUrl:
       "https://cdn.sanity.io/images/qrv69xlg/production/d6ac3e0ce944481e0732d26436d27640e0400470-1080x1080.jpg",
-    width: 1080,
-    height: 1080,
+    width: 1200,
+    height: 1200,
   },
   {
     id: "lo-behold",
@@ -33,10 +37,12 @@ export const PROJECTS: Project[] = [
     year: "2023",
     type: "Short Film",
     videoUrl: "https://www.youtube.com/watch?v=Hn21UDVOk3E",
-    imageUrl:
-      "https://cdn.sanity.io/images/qrv69xlg/production/90b6f28fe8519373e5942619884af5622fc383cc-2048x1536.jpg",
-    width: 2048,
-    height: 1536,
+    previewVideoUrl: "/assets/bradyperron/video/lo-behold.mp4",
+    imageUrl: "/assets/bradyperron/home/lo-behold.webp",
+    sourceUrl:
+      "https://image.mux.com/pWpmeh2nG7EX6MHchaIRXBL00wr2N2zR9zZc3D00wLJH8/thumbnail.webp?width=1200&time=0.45",
+    width: 1200,
+    height: 1500,
   },
   {
     id: "timberland",
@@ -45,11 +51,15 @@ export const PROJECTS: Project[] = [
     client: "Timberland",
     year: "2023",
     type: "Commercial",
+    description:
+      "Timberland men’s Premium 6“ Waterproof Boot, reimagined with regenerative leather. Available now. 1 of 3 ads.",
     videoUrl: "https://www.youtube.com/shorts/RFudzdvrvPc",
-    imageUrl:
-      "https://cdn.sanity.io/images/qrv69xlg/production/5a193cc9f4ad9d2c6af3203a1a98e042f407aa3a-1920x1080.jpg",
-    width: 1920,
-    height: 1080,
+    previewVideoUrl: "/assets/bradyperron/video/timberland.mp4",
+    imageUrl: "/assets/bradyperron/home/timberland.webp",
+    sourceUrl:
+      "https://image.mux.com/sfl3vxN2dMGgKu9TMWztvia9YpAmQTrdgSMdLS5EbMw/thumbnail.webp?width=1200&time=7.65",
+    width: 1200,
+    height: 1500,
   },
   {
     id: "nuance",
@@ -59,10 +69,12 @@ export const PROJECTS: Project[] = [
     year: "2023",
     type: "Short Film",
     videoUrl: "https://www.youtube.com/watch?v=AZH6GulSGYQ",
-    imageUrl:
-      "https://cdn.sanity.io/images/qrv69xlg/production/d4002ec0d079d7781d1ddacbf5ca55568c3fa82a-5035x3339.jpg",
-    width: 5035,
-    height: 3339,
+    previewVideoUrl: "/assets/bradyperron/video/nuance.mp4",
+    imageUrl: "/assets/bradyperron/home/nuance.webp",
+    sourceUrl:
+      "https://image.mux.com/aRHAvLuj8OTimrgtjFxBzTgIUNd02zHUzW8Dr8uy8IBo/thumbnail.webp?width=1200&time=3.6",
+    width: 1200,
+    height: 675,
   },
   {
     id: "valerie-omari",
@@ -71,71 +83,89 @@ export const PROJECTS: Project[] = [
     client: "Valerie Omari",
     year: "2025",
     type: "Music Video",
+    description:
+      "“Closure” is the anchor track of Congolese-born R&B singer-songwriter Valerie Omari’s highly praised sophomore EP.",
     videoUrl: "https://www.youtube.com/watch?v=M-f_vdpkP_M",
-    imageUrl:
-      "https://cdn.sanity.io/images/qrv69xlg/production/cf3774860fc2e259b5b98c7ed0d4190b08d7036b-3840x2160.jpg",
-    width: 3840,
-    height: 2160,
+    previewVideoUrl: "/assets/bradyperron/video/valerie-omari.mp4",
+    imageUrl: "/assets/bradyperron/home/valerie-omari.webp",
+    sourceUrl:
+      "https://image.mux.com/JIbtVyo57Rn2Q1e00Y01r11kRQIIJ2hR00q47bAgroVfEM/thumbnail.webp?width=1200&time=0.6074195",
+    width: 1200,
+    height: 675,
   },
   {
     id: "novos-labs",
     slug: "novos-labs",
     title: "NOVOS Labs",
     client: "NOVOS Labs",
-    year: "2024",
+    year: "2025",
     type: "Commercial",
-    imageUrl:
-      "https://cdn.sanity.io/images/qrv69xlg/production/189c09419553268b45572cda075fec37313878ae-3089x2048.jpg",
-    width: 3089,
-    height: 2048,
+    videoUrl: "https://vimeo.com/1026087238/3b96da2d29",
+    imageUrl: "/assets/bradyperron/home/novos-labs.webp",
+    sourceUrl:
+      "https://image.mux.com/bxDFA6bbADD4f6cIXOlyoaOjjcpu3CTIdKg8ECQLdIg/thumbnail.webp?width=1200&time=15.3",
+    width: 1200,
+    height: 675,
   },
   {
     id: "jack-moore",
     slug: "jack-moore-head-in-sand",
     title: "JACK MOORE HEAD IN SAND",
-    client: "Jack Moore",
-    year: "2024",
-    type: "Music Video",
-    imageUrl:
-      "https://cdn.sanity.io/images/qrv69xlg/production/0881f51ccf5932c3a352365a7e277de5024b2547-2048x1536.jpg",
-    width: 2048,
-    height: 1536,
+    client: "JACK MOORE",
+    year: "2025",
+    type: "Documentary",
+    description: "A short view into the world of Jack Moore.",
+    videoUrl: "https://vimeo.com/1031949663",
+    imageUrl: "/assets/bradyperron/home/jack-moore.webp",
+    sourceUrl:
+      "https://image.mux.com/5kJQOj4lbLwo00YISA5Za4Z5asGjODrQkpRXiYQUzZSM/thumbnail.webp?width=1200&time=0.37",
+    width: 1200,
+    height: 1500,
   },
   {
     id: "shy-of-summer-ii",
     slug: "shy-of-summer-ii",
     title: "Shy of Summer II",
-    client: "Shy of Summer",
-    year: "2023",
-    type: "Short Film",
-    imageUrl:
-      "https://cdn.sanity.io/images/qrv69xlg/production/11cdc3fe547613d2dc6ea0dc038d7c34b03fc850-2988x1616.png",
-    width: 2988,
-    height: 1616,
+    client: "Monster Energy",
+    year: "2025",
+    type: "Commercial",
+    description: "A short ski video for Monster Energy.",
+    videoUrl: "https://www.youtube.com/watch?v=zvkRjNP7wzY",
+    imageUrl: "/assets/bradyperron/home/shy-of-summer-ii.webp",
+    sourceUrl:
+      "https://image.mux.com/ed2G4UAptkBwZKbZUeTdp4dY01OmXyNh7tBWS4wOOeLY/thumbnail.webp?width=1200&time=3.43",
+    width: 1200,
+    height: 675,
   },
   {
     id: "omar-al-sudani",
-    slug: "ill-see-you-on-the-other-side",
-    title: "\"I'll See You on the Other Side\" Omar Al-Sudani x Office Mag",
-    client: "Office Magazine",
-    year: "2024",
-    type: "Editorial",
-    imageUrl:
-      "https://cdn.sanity.io/images/qrv69xlg/production/4c6b9a827a15c981dd76f55d1167379e30e568f7-3006x1330.png",
-    width: 3006,
-    height: 1330,
+    slug: "ill-see-you-on-the-other-side-omar-al-sudani-x-office-mag",
+    title: '"I\'ll See You on the Other Side" Omar Al-Sudani x Office Mag',
+    client: "Omar Al-Sudani x Office Mag",
+    year: "2025",
+    type: "Documentary",
+    description:
+      "Alongside Mike Brewer, a short glimpse into memorials of murals in NYC.",
+    videoUrl: "https://www.youtube.com/watch?v=rug_Ixf5D9M",
+    imageUrl: "/assets/bradyperron/home/other-side.webp",
+    sourceUrl:
+      "https://image.mux.com/EQluCF0201sFXN003rzo1F017G5c6OX02e7Z8U6Oo02DpU4Ck/thumbnail.webp?width=1200&time=2.70534725",
+    width: 1200,
+    height: 675,
   },
   {
     id: "686-jogger",
     slug: "686-jogger",
     title: "686 Jogger",
     client: "686",
-    year: "2023",
+    year: "2025",
     type: "Commercial",
-    imageUrl:
-      "https://cdn.sanity.io/images/qrv69xlg/production/39f899373e9893b04ef43877b8f0eea98f1f71a1-1080x1080.jpg",
-    width: 1080,
-    height: 1080,
+    description: "Commercial edit for 686 Outerwear new jogger pants.",
+    imageUrl: "/assets/bradyperron/home/686-jogger.webp",
+    sourceUrl:
+      "https://image.mux.com/yM02barDPyENJoFERifqakgUSRlruVXnWwqTptjM01Tz4/thumbnail.webp?width=1200&time=17.73",
+    width: 1200,
+    height: 675,
   },
   {
     id: "erne",
@@ -143,11 +173,15 @@ export const PROJECTS: Project[] = [
     title: "ERNE",
     client: "ERNE",
     year: "2024",
-    type: "Commercial",
-    imageUrl:
-      "https://cdn.sanity.io/images/qrv69xlg/production/f7d007555a98695447d9c8376d546fc708df2c55-1600x1436.jpg",
-    width: 1600,
-    height: 1436,
+    type: "Music Video",
+    description:
+      "Visual identity for ERNE, a rapper/producer. Music videos & album art.",
+    videoUrl: "https://www.youtube.com/watch?v=e52SADE8cEY",
+    imageUrl: "/assets/bradyperron/home/erne.webp",
+    sourceUrl:
+      "https://image.mux.com/xosZAriSATvxlSNRyN3G00XxkDLxwL200X702BAs00DihwM/thumbnail.webp?width=1200&time=2.28377225",
+    width: 1200,
+    height: 675,
   },
   {
     id: "elaine-hersby",
@@ -155,10 +189,13 @@ export const PROJECTS: Project[] = [
     title: "Elaine Hersby",
     client: "Elaine Hersby",
     year: "2023",
-    type: "Editorial",
-    imageUrl:
-      "https://cdn.sanity.io/images/qrv69xlg/production/1f71c6afd77b2f175a2a6cc23afeadf57debeb1a-1600x1200.jpg",
-    width: 1600,
+    type: "Commercial",
+    description: "Dance Set by Elaine Hersby. Shot in Copenhagen, DK. Gaardbodans.",
+    videoUrl: "https://vimeo.com/868790153",
+    imageUrl: "/assets/bradyperron/home/elaine-hersby.webp",
+    sourceUrl:
+      "https://image.mux.com/WWH4qjZS6tEpQucHsY4eFvs8q500DPYux2cHkkWOxN7w/thumbnail.webp?width=1200&time=0.51",
+    width: 1200,
     height: 1200,
   },
   {
@@ -166,25 +203,31 @@ export const PROJECTS: Project[] = [
     slug: "the-north-face-freeride",
     title: "The North Face | Freeride",
     client: "The North Face",
-    year: "2024",
+    year: "2026",
     type: "Commercial",
-    imageUrl:
-      "https://cdn.sanity.io/images/qrv69xlg/production/b03b7f78cc137f6fc786fc3952b74f8db58fe82b-1600x968.jpg",
-    width: 1600,
-    height: 968,
+    description: "A collaboration with Jossi Wells for The North Face.",
+    videoUrl: "https://www.youtube.com/watch?v=Fy5GxRCs59I",
+    imageUrl: "/assets/bradyperron/home/tnf-freeride.webp",
+    sourceUrl:
+      "https://image.mux.com/5LyfaAhx9ru01QhWl8WRJDGAk43yDqQMxHxCnZPPsZLg/thumbnail.webp?width=1200&time=1.55",
+    width: 1200,
+    height: 675,
   },
   {
     id: "something-in-water",
-    slug: "something-in-the-water-jake-mageau",
+    slug: "something-in-the-water-jake-mageau-x-level-1",
     title: '"Something in the Water" Jake Mageau x Level 1',
-    client: "Level 1",
-    year: "2023",
-    type: "Short Film",
-    videoUrl: "https://www.youtube.com/watch?v=AZH6GulSGYQ",
-    imageUrl:
-      "https://cdn.sanity.io/images/qrv69xlg/production/54eaeff8f4671a54752a304cb9ec296df3f9ae89-3130x2075.jpg",
-    width: 3130,
-    height: 2075,
+    client: "686, ON3P, Fat Tire",
+    year: "2025",
+    type: "Commercial",
+    description:
+      'Jake Mageau and Brady Perron proudly offer their second short film, "Something In The Water". Presented by Level 1, made possible by the generous support of 686, Fat Tire, and ON3P Skis.',
+    videoUrl: "https://www.youtube.com/watch?v=XBC2B3Pp_iQ",
+    imageUrl: "/assets/bradyperron/home/something-water.webp",
+    sourceUrl:
+      "https://image.mux.com/HmKDMLG98KmDiDgBHkEGY83xl9EkNgCMsgDgX9IIcnE/thumbnail.webp?width=1200&time=1.72",
+    width: 1200,
+    height: 675,
   },
   {
     id: "tnf-coalesce",
@@ -193,34 +236,45 @@ export const PROJECTS: Project[] = [
     client: "The North Face",
     year: "2023",
     type: "Short Film",
-    imageUrl:
-      "https://cdn.sanity.io/images/qrv69xlg/production/b311550b0d640b8383ef5d10295e767e9256dd2f-3840x2160.jpg",
-    width: 3840,
-    height: 2160,
+    description:
+      'The North Face presents "Coalesce". Jossi Wells unites the movement of skiing and dance alongside ballerina Chelsea Keefer to create a duet focused on precise execution and the beauty therein.',
+    videoUrl: "https://www.youtube.com/watch?v=6ABm12ThTPY",
+    imageUrl: "/assets/bradyperron/home/tnf-coalesce.webp",
+    sourceUrl:
+      "https://image.mux.com/XRsKtCiv7obu8vEyNi5yAh8j0200pJpk5Hrfypj7ufHmw/thumbnail.webp?width=1200&time=4.37",
+    width: 1200,
+    height: 675,
   },
   {
     id: "attn-bite",
-    slug: "attn-for-bite",
+    slug: "attn-bite-online",
     title: "ATTN for bite.",
-    client: "bite",
-    year: "2024",
-    type: "Commercial",
-    imageUrl:
-      "https://cdn.sanity.io/images/qrv69xlg/production/ba68756c2e95ff5c4be548d079843783c2105c3a-3680x2760.jpg",
-    width: 3680,
-    height: 2760,
+    client: "bite.",
+    year: "2026",
+    type: "Film",
+    description:
+      "Edouard and accomplices moving like they can. Québec, Colorado, Austria. No push, no pose — natural, familiar but still new.",
+    videoUrl: "https://www.youtube.com/watch?v=7Fw0kNam90o",
+    imageUrl: "/assets/bradyperron/home/attn-bite.webp",
+    sourceUrl:
+      "https://cdn.sanity.io/images/qrv69xlg/production/ebd23bed6589565e72b0d01f75246af6662faef7-1920x1080.jpg",
+    width: 1200,
+    height: 675,
   },
   {
     id: "good-bacteria",
     slug: "good-bacteria",
     title: "Good Bacteria",
     client: "Good Bacteria",
-    year: "2023",
-    type: "Short Film",
-    imageUrl:
-      "https://cdn.sanity.io/images/qrv69xlg/production/e44975709317e32bc577b39bd9d77b15b495fd28-1920x1080.jpg",
-    width: 1920,
-    height: 1080,
+    year: "2026",
+    type: "Commercial",
+    description: "www.itsgoodbacteria.com",
+    videoUrl: "https://vimeo.com/1204594282/7d827858f6?share=copy&fl=sv&fe=ci",
+    imageUrl: "/assets/bradyperron/home/good-bacteria.webp",
+    sourceUrl:
+      "https://image.mux.com/KZL902VCGPzwZEEFhVyGWTMdQ6CnsilqWZTjq1008vIBY/thumbnail.webp?width=1200&time=5",
+    width: 1200,
+    height: 675,
   },
 ];
 
@@ -232,9 +286,11 @@ export const SETTINGS = {
   instagram: "https://instagram.com/bradyperron",
   email: "brady.perron@gmail.com",
   portrait: {
-    url: "https://cdn.sanity.io/images/qrv69xlg/production/ce4e709dd358c6174402b1342cef9809f85035b5-3339x5035.jpg",
+    url: "/assets/bradyperron/brady-portrait.jpg",
+    sourceUrl:
+      "https://cdn.sanity.io/images/qrv69xlg/production/ce4e709dd358c6174402b1342cef9809f85035b5-3339x5035.jpg",
     width: 3339,
     height: 5035,
-    alt: "Brady Perron",
+    alt: "Brady Perron standing outside in winter",
   },
 };
