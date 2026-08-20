@@ -1,188 +1,363 @@
-# Brady Perron — Product Requirements
+# Brady Perron Portfolio — Product Requirements Document
 
-## 1. Product Overview
+**Status:** Build - Complete  
+**Stack:** Next.js 16 App Router, React 19, TypeScript, Tailwind CSS 4, Framer Motion  
+**Route:** `/` only (single-page portfolio)  
+**Design Direction:** Sparse, image-led, editorial / cinematic, playful discovery without conventional navigation chrome
 
-Brady Perron is a Brooklyn-based Videographer / Director / Editor / Photographer. Tagline: "Rhythm. Range. Poetic. Dynamic." The website is a minimal editorial portfolio where the entire experience is a single page: an infinite vertical scroll of project titles rendered over a full-viewport canvas that reveals preview imagery on hover/proximity. Fixed bottom chrome shows the identity mark `bradyperron` and two actions: `list` and `about`. Clicking `about` slides up a full-screen white modal with large type manifesto, personal portrait, contact links, and footer.
+## 1. Product Intent
 
-Original: https://www.bradyperron.com/
-Category: replication, creative portfolio
+Build a sparse, image-led portfolio for filmmaker and photographer Brady Perron. The identity is lowercase `bradyperron`. Visitors discover 17 projects by moving through images or titles, open each project without leaving the page, and can reach biography and contact links at any time.
 
-Primary qualities: Brutalist minimalism, typographic restraint, fluid motion, high contrast black on white, focus on content and imagery.
+The experience must feel editorial, cinematic, and intentional — not a conventional grid with nav. Cutting scope is acceptable; shipping broken scope is not.
 
-## 2. Audience and Core Experience
+Core promise:
+- One public product route: `/`
+- Two interchangeable project browsers (grid + list) on the same page
+- Fullscreen inline project detail (dialog, not route)
+- Fullscreen inline about/biography (dialog, not route)
+- No dead ends: project titles never navigate to missing pages; use modal/inline preview
 
-- Primary: Creative directors, brands (Timberland, The North Face, Monster Energy, Armada Skis), music artists, agencies scouting directors.
-- Secondary: Other filmmakers, photographers, peers.
+## 2. Goals / Non-Goals
 
-Goals:
-- Rapidly scan 17 projects as large type that feels infinite.
-- Hover near center triggers image preview.
-- Switch to list view for scannability.
-- Open about to get positioning statement + contact (instagram, email).
-- Loader establishes brand before interaction.
+### Goals
+- Showcase 17 projects with local poster frames and 4 muted preview loops
+- Provide two browsing modes with continuous looping interaction
+- Present project metadata and external film link in a focused fullscreen dialog
+- Present biography, portrait, discipline and contact links in a fullscreen about dialog
+- Meet a11y baseline: keyboard operable, focus trap for dialogs, visible focus states, reduced-motion support
+- Be fully responsive with no horizontal overflow at 320px
+- Performant local-only assets: no automatic third-party media or tracking requests at render
 
-Core flows:
-1. Land → loader shows bradyperron + progress bar 0→100 → fades, reveals project rows and bottom bar with opacity 0→1.
-2. Scroll wheel or drag → infinite loop of titles moving vertically. Centered title is visually prominent (larger, wider letter-spacing). Titles off-screen loop.
-3. Hover/focus near-center title → preview image fades behind (or beside) with scale.
-4. Click title → would navigate to project page (original routes like /harlaut-apparel). For scope, project click opens inline detail or stays on page with hash anchor to avoid broken scope.
-5. Toggle `list` bottom right → switches from infinite canvas to simple vertical list with small thumbnails + meta (client, year).
-6. Toggle `about` → modal slides up from 100% translateY, locks scroll, shows manifesto, portrait, contact, close. Close via button or Escape or click outside.
+### Non-Goals (Cut Cleanly)
+- No CMS integration
+- No WebGL / shader complexity
+- No remote streaming SDK (no Mux SDK, no embedded iframes on the homepage)
+- No additional routes (`/projects/[slug]`, `/about`, etc.)
+- No analytics, tracking, or undocumented third-party calls
+- No `eval`, `new Function`, `document.write`, unsafe `innerHTML`
 
-Emotional qualities: calm, confident, rhythmic, poetic, editor's precision.
+## 3. Information Architecture & Routes
 
-## 3. Global Design System
+| Route | Purpose | Notes |
+|-------|---------|-------|
+| `/` | Single product page — contains loader, grid/list browsers, bottom controls, and inline dialogs | Only public route |
 
-### Typography
-| Role | Style |
-|------|-------|
-| Brand mark | Acumin / Helvetica Neue, lowercase `bradyperron`, 1.25rem mobile → 1.875rem desktop, tight tracking -0.02em |
-| Project titles (infinite) | Acumin, regular, uppercase or mixed case as original (preserve quotes), white-space nowrap, centered left-1/2 top-1/2 absolute, font size fluid clamp roughly 11px → 64px depending on proximity to viewport center. Letter-spacing transitions 450ms cubic-bezier(0.22,0.61,0.36,1) |
-| Project titles (list view) | Same font but small 14-18px, tabular |
-| About headline | Acumin, clamp 1.7rem to 3.75rem, 4.4vw, line-height 1.06, letter-spacing -0.018em, max-width 17em, split per word in overflow-hidden wrappers for staggered reveal |
-| About eyebrows | 11-12px tracking 0.3em uppercase black/40 |
-| Contact links | 14px mobile 20px desktop, border-t black/15, flex baseline justify-between, arrow ↗ on hover translate |
+- All project and about content opens inline via dialogs on `/`
+- Project title clicks must not navigate; they open `ProjectPreview` dialog
+- Placeholder routes that 404 are forbidden
+- Brand mark `bradyperron` stays on page (scroll-to-top or no-op), never links to missing route
+- Next.js framework-level `not-found` may exist but is not part of product IA
 
-### Color Tokens
-| Token | Value | Usage |
-|-------|-------|-------|
-| White | #FFFFFF | Page background, modal background |
-| Black | #000000 | Text primary |
-| Black/10 | rgba(0,0,0,0.1) | Loader track |
-| Black/15 | rgba(0,0,0,0.15) | Borders in about |
-| Black/85 blur | rgba(255,255,255,0.85) backdrop-blur-md | Bottom name pill |
-| #000000 at 40% | for eyebrows |
+## 4. Content Model
 
-### Layout and Spacing
-- Full viewport: 100vw 100vh canvas fixed inset-0, overflow hidden.
-- Bottom bar: fixed bottom-0 left-0 right-0 z-20 p-4 pointer-events-none for container, but children pointer-events-auto.
-- About modal: fixed inset-0 z-30 bg-white text-black pointer-events-auto overflow-y-auto overscroll-contain [transform:translateY(100%)] [scrollbar-width:none] styled to slide up; internal px-5 pb-5 md:px-12 md:pb-10, header sticky top.
-- Loader: fixed inset-0 z-50 flex items-center justify-center bg-white h-screen w-screen.
+### 4.1 Identity & Settings (`lib/projects.ts` SETTINGS)
 
-### Shared Component Styles
-- Buttons: layout-button fixed bottom-4 right-16 / right-4 z-20 pointer-events-auto font-acumin text-black text-sm md:text-base leading-none hover:opacity-60 transition-opacity cursor-pointer opacity-0 initially.
-- Project rows: will-change transform, opacity, letter-spacing, font-size; pointer-events toggled after loader.
-- About word: inline-block overflow-hidden align-top pb-[0.14em] -mb-[0.14em] containing about-word child.
+- `siteTitle`: `bradyperron`
+- `description`: `Videographer/Editor/Director`
+- `longDescription`: `Brady Perron is a Brooklyn-based Videographer/Director/Editor/Photographer. Rhythm. Range. Poetic. Dynamic.`
+- `discipline line`: `Videographer / Editor / Director`
+- `instagram`: `https://instagram.com/bradyperron`
+- `email`: `brady.perron@gmail.com`
+- `portrait`: local 4:5 image at `/assets/bradyperron/brady-portrait.jpg` with alt text
 
-### Motion Language
-- Loader text slides up from y 100% opacity 0.
-- Progress bar width animates 0→100% duration ~1.2s ease-out.
-- Project titles ease via letter-spacing and font-size 450ms cubic-bezier(0.22,0.61,0.36,1) as they approach center.
-- About modal: transform translateY 100% → 0% with ease [0.22,0.61,0.36,1] 600-800ms, opacity fade, staggered word reveal.
-- Image preview: fade opacity 0→1 300ms, scale 0.95→1.
-- Reduced motion: respect prefers-reduced-motion, disable parallax and make transitions instant opacity only.
+### 4.2 Projects (`lib/projects.ts` PROJECTS)
 
-### Responsive System
-- Mobile 390px: Bottom name text-xl, single column about layout: manifesto full width, then image 2/3 width, then contact, footer baseline.
-- Tablet 768px: Name text-3xl, about grid 12 cols: headline spans 12, image col 9 span 4, contact col 1 span 4.
-- Desktop 1024px+: same as tablet but more breathing room.
+Single source of truth: `src/lib/projects.ts` constant.
 
-## 4. Global Accessibility Requirements
-- Keyboard: All interactive (project rows as buttons, list/about, close, instagram, email) reachable via Tab, operable Enter/Space, no trap. About modal traps focus when open, Escape closes.
-- Focus visible: outline 2px black offset.
-- Skip: skip to main content link hidden until focus.
-- Landmarks: header in about, main, footer.
-- Labels: list button aria-label "Switch to list view", about button "Open about modal", close "close", project rows have aria-label with title.
-- Alt: Brady portrait alt "Brady Perron portrait", preview images alt set to title.
-- Contrast: black on white 21:1.
+Per project fields:
 
-## 5. Global Content and Data
+```ts
+{
+  id: string,
+  slug: string,
+  title: string,
+  client: string,
+  year: string,
+  type: "Commercial" | "Short Film" | "Campaign" | "Music Video" | "Documentary" | "Film",
+  description?: string,
+  videoUrl?: string,           // optional external YouTube/Vimeo destination for "watch film"
+  previewVideoUrl?: string,    // optional local muted loop (4 projects)
+  imageUrl: string,            // local poster frame under /assets/bradyperron/home/
+  width: number,               // authoritative aspect ratio width
+  height: number,              // authoritative aspect ratio height
+}
+```
 
-17 Projects extracted from live site:
-1. Harlaut Apparel Winter Campaign — 2024 — Harlaut Apparel — video https://www.youtube.com/watch?v=-gETTd7vTrE — image https://cdn.sanity.io/images/qrv69xlg/production/d6ac3e0ce944481e0732d26436d27640e0400470-1080x1080.jpg
-2. "Lo & Behold" Henrik Harlaut — 2023 — Monster Energy — Short Film — video https://www.youtube.com/watch?v=Hn21UDVOk3E — Mux playback pWpmeh2nG7EX6MHchaIRXBL00wr2N2zR9zZc3D00wLJH8 — image https://cdn.sanity.io/images/qrv69xlg/production/90b6f28fe8519373e5942619884af5622fc383cc-2048x1536.jpg
-3. Timberland Built for the Bold — 2023 — Timberland — Commercial — video https://www.youtube.com/shorts/RFudzdvrvPc — image https://cdn.sanity.io/images/qrv69xlg/production/5a193cc9f4ad9d2c6af3203a1a98e042f407aa3a-1920x1080.jpg
-4. "Nuance" Phil Casabon x Armada Skis — 2023 — Armada Skis — Short Film — video https://www.youtube.com/watch?v=AZH6GulSGYQ — image https://cdn.sanity.io/images/qrv69xlg/production/d4002ec0d079d7781d1ddacbf5ca55568c3fa82a-5035x3339.jpg
-5. Valerie Omari — 2025 — Music Video — video https://www.youtube.com/watch?v=M-f_vdpkP_M — image https://cdn.sanity.io/images/qrv69xlg/production/cf3774860fc2e259b5b98c7ed0d4190b08d7036b-3840x2160.jpg
-6. NOVOS Labs — — — image https://cdn.sanity.io/images/qrv69xlg/production/189c09419553268b45572cda075fec37313878ae-3089x2048.jpg
-7. JACK MOORE HEAD IN SAND — — — image https://cdn.sanity.io/images/qrv69xlg/production/0881f51ccf5932c3a352365a7e277de5024b2547-2048x1536.jpg
-8. Shy of Summer II — — — image https://cdn.sanity.io/images/qrv69xlg/production/11cdc3fe547613d2dc6ea0dc038d7c34b03fc850-2988x1616.png
-9. "I'll See You on the Other Side" Omar Al-Sudani x Office Mag — — Editorial — image https://cdn.sanity.io/images/qrv69xlg/production/4c6b9a827a15c981dd76f55d1167379e30e568f7-3006x1330.png
-10. 686 Jogger — — — image https://cdn.sanity.io/images/qrv69xlg/production/39f899373e9893b04ef43877b8f0eea98f1f71a1-1080x1080.jpg
-11. ERNE — — — image https://cdn.sanity.io/images/qrv69xlg/production/f7d007555a98695447d9c8376d546fc708df2c55-1600x1436.jpg
-12. Elaine Hersby — — — image https://cdn.sanity.io/images/qrv69xlg/production/1f71c6afd77b2f175a2a6cc23afeadf57debeb1a-1600x1200.jpg
-13. The North Face | Freeride — — — image https://cdn.sanity.io/images/qrv69xlg/production/b03b7f78cc137f6fc786fc3952b74f8db58fe82b-1600x968.jpg
-14. "Something in the Water" Jake Mageau x Level 1 — — Short Film — image https://cdn.sanity.io/images/qrv69xlg/production/54eaeff8f4671a54752a304cb9ec296df3f9ae89-3130x2075.jpg
-15. The North Face "COALESCE" — — — image https://cdn.sanity.io/images/qrv69xlg/production/b311550b0d640b8383ef5d10295e767e9256dd2f-3840x2160.jpg
-16. ATTN for bite. — — — image https://cdn.sanity.io/images/qrv69xlg/production/ba68756c2e95ff5c4be548d079843783c2105c3a-3680x2760.jpg
-17. Good Bacteria — — — image https://cdn.sanity.io/images/qrv69xlg/production/e44975709317e32bc577b39bd9d77b15b495fd28-1920x1080.jpg
+Exactly 17 entries:
 
-Settings:
-- siteTitle bradyperron
-- description Videographer/Editor/Director short, long: Brady Perron is a Brooklyn-based Videographer/Director/Editor/Photographer. Rhythm. Range. Poetic. Dynamic.
-- instagram https://instagram.com/bradyperron
-- email brady.perron@gmail.com
-- portrait https://cdn.sanity.io/images/qrv69xlg/production/ce4e709dd358c6174402b1342cef9809f85035b5-3339x5035.jpg
+| # | Title | Client | Year | Type | Has Local Preview Loop |
+|---|-------|--------|------|------|------------------------|
+| 1 | Harlaut Apparel Winter Campaign | Harlaut Apparel Winter Campaign | 2024 | Campaign | No |
+| 2 | "Lo & Behold" Henrik Harlaut | Monster Energy | 2023 | Short Film | Yes |
+| 3 | Timberland Built for the Bold | Timberland | 2023 | Commercial | Yes |
+| 4 | "Nuance" Phil Casabon x Armada Skis | Armada Skis | 2023 | Short Film | Yes |
+| 5 | Valerie Omari | Valerie Omari | 2025 | Music Video | Yes |
+| 6 | NOVOS Labs | NOVOS Labs | 2025 | Commercial | No |
+| 7 | JACK MOORE HEAD IN SAND | JACK MOORE | 2025 | Documentary | No |
+| 8 | Shy of Summer II | Monster Energy | 2025 | Commercial | No |
+| 9 | "I'll See You on the Other Side" Omar Al-Sudani x Office Mag | Omar Al-Sudani x Office Mag | 2025 | Documentary | No |
+| 10 | 686 Jogger | 686 | 2025 | Commercial | No |
+| 11 | ERNE | ERNE | 2024 | Music Video | No |
+| 12 | Elaine Hersby | Elaine Hersby | 2023 | Commercial | No |
+| 13 | The North Face \| Freeride | The North Face | 2026 | Commercial | No |
+| 14 | "Something in the Water" Jake Mageau x Level 1 | 686, ON3P, Fat Tire | 2025 | Commercial | No |
+| 15 | The North Face "COALESCE" | The North Face | 2023 | Short Film | No |
+| 16 | ATTN for bite. | bite. | 2026 | Film | No |
+| 17 | Good Bacteria | Good Bacteria | 2026 | Commercial | No |
 
-## 6. Product Surfaces
+- When `previewVideoUrl` exists, the project plays a muted, inline, looping video in active grid/list slots and in preview dialog; otherwise poster frame is used.
+- `videoUrl` when present renders a single centered `watch film ↗` external link in preview dialog; opened in new tab with `rel="noopener noreferrer"` only after explicit user action.
 
-### Loader
-- Full viewport white, centered stack: brand text bradyperron text-3xl md:text-5xl black with overflow-hidden slide-up, progress track w-half left-0 w-full h-1 bg-black/10, inner bar h-full bg-black transition-all duration-300 ease-out width 0%→100%.
-- Appearance after delay: opacity 0 with pointer-events none, then removed.
-- Behavior: Progress simulates loading (or tracks image preloading). Once 100%, fade out 500ms, then reveal main titles (opacity 0→1) and bottom bar.
+## 5. Visual System
 
-### Infinite Canvas View (default)
-- Structure: parent min-h-screen min-w-screen, inner fixed inset-0 w-100vw h-100vh with inner relative w-full h-full overflow-hidden pointer-events-auto containing canvas (display:block) + DOM title rows layer.
-- For replica, we mimic canvas image trail with a div layer behind titles that shows current hover image with object-cover.
-- Title rows: button absolute left-1/2 top-1/2 whitespace-nowrap font-acumin text-black cursor-pointer select-none, style will-change transform, opacity, letter-spacing, font-size; transition letter-spacing 450ms cubic-bezier(0.22,0.61,0.36,1), font-size 450ms...
-- Position calculation: original uses WebGL math to place each subsequent title lower with scroll. Replica can use Framer Motion + scroll-linked transforms: each row translateY based on index multiplied by base line height (e.g., 12% viewport) plus scroll offset, duplicated list to allow infinite wrap; centering via transform translateX(-50%) translateY(-50% + offset).
-- Focus proximity: title closest to viewport center gets largest font size (e.g., clamp 28px to 64px) and widest letter-spacing (at center 0.02em, off -0.05em) and opacity 1, others opacity 0.3-0.6.
-- Pointer: on hover set activeIndex, show preview image.
+### 5.1 Color
+- Canvas and panel background: `#FFFFFF`
+- Primary text: `#000000`
+- Secondary labels: black at 40–60% opacity
+- Borders / progress track: black at 10–15% opacity
+- Image placeholders: very light neutral gray
+- Text selection: white text on black (`::selection`)
 
-### List View
-- Toggled via list button which text flips to "canvas" or "grid" when in list mode. Original aria-label switches to "Switch to canvas view" etc.
-- Simple vertical list: each item row: small index 01., title, year, client, type, 80px thumbnail right. Click still previews or navigates.
+### 5.2 Typography
+- Locally hosted `Fraunces Thin` at weight 100 for entire interface: `public/fonts/fraunces-thin.ttf` + italic variant
+- Light editorial, not bold/geometric
+- Brand mark (lower-left): 20px mobile, 30px desktop
+- Default list titles: fluid `14–24px`, line-height `1.5`, tracking `0.02em`
+- Active centered list title: fluid `20–36px`, tracking `0.32em`
+- About statement: `clamp(1.7rem, 4.4vw, 3.75rem)`, line-height `1.06`, letter-spacing `-0.018em`
+- Utility labels: `11–14px`, tracking `0.22–0.32em`
 
-### Bottom Bar
-- Fixed bottom-0 left-0 right-0 z-20 p-4 pointer-events-none container with inner:
-  - Left: h1.layout-name font-acumin text-xl md:text-3xl text-black opacity-0 bg-white/85 backdrop-blur-md → opacity 1 after loader.
-  - Right cluster: two buttons bottom-4 right-16 and right-4 fixed, pointer-events-auto.
-  - Both buttons hover:opacity-60 transition.
+### 5.3 Layout Tokens
+- Viewport: white, full-width, `overflow-x: clip` at every supported size
+- Project browsers fill viewport and do not expose document scrollbar
+- Bottom controls fixed: brand at lower-left, `list`/`grid` + `about` at lower-right
+- Primary responsive breakpoint: `768px`
+- Focus visible: `2px solid black` with `2px` offset outline
+- Touch targets: minimum `44px` for bottom buttons and about links
 
-### About Modal
-- Fixed inset-0 z-30 bg-white text-black overflow-y-auto overscroll-contain initially translateY(100%) hidden via CSS transform, also scrollbar hidden.
-- Inner flex col min-h-full px-5 pb-5 md:px-12 md:pb-10.
-- Header: sticky top-0 z-20 -mx-5 flex items-start justify-between bg-white px-5 pb-3 pt-5 md:-mx-12 md:px-12 md:pb-4 md:pt-10 — left eyebrow about — bradyperron font 11px tracking 0.3em black/40, right close button 11px tracking 0.25em black/60 hover black.
-- Main: grid 1 col gap-y-12 pb-6 md:mt-24 md:grid-cols-12 md:gap-x-10 flex-1.
-  - Headline block md:col-span-12 font-acumin black clamp 1.7rem,4.4vw,3.75rem line-height 1.06 letter-spacing -0.018em max-width 17em — words each inside overflow-hidden wrapper pb-[0.14em] -mb-[0.14em] with inner .about-word inline-block that will be animated staggered.
-  - Figure portrait: aspect 4/5 w-2/3 overflow-hidden bg-black/[0.04] md:col-span-4 md:col-start-9 — inner div absolute -inset-[5%] overflow for subtle zoom.
-  - Contact: flex-col md:col-span-4 col-start-1 row-start-2 — label (contact) same eyebrow, nav mt-5 flex-col md:mt-7 — each link group flex baseline justify-between gap-4 border-t (first) and border-y second, py 2.5 md:py-3.5 text-sm md:text-xl text-black hover:text-black/55 transition-colors with arrow ↗ that translates on group hover: translate-x-1 -translate-y-1 duration 300.
-  - Role line: Videographer / Editor / Director font 11px tracking 0.3em black/45.
-- Footer: about-reveal flex items-end justify-between border-t border-black/10 pt-6 font 10px tracking 0.3em black/30 md:pt-8 md:text-11px — left bradyperron, right © 2026.
-- Behavior: When open, body overflow hidden, pointer-events auto, transform translateY 0. Close on button, Escape, or click backdrop edge.
-- Animation: initial translateY 100% → 0% spring, each .about-reveal element fade stagger, words 20ms stagger.
+## 6. Global Layout & Chrome
 
-## 7. Acceptance Criteria
+- `header` / `main` / `footer` landmarks present
+- `main` id `main-content` with skip link: `Skip to main content` (sr-only, focus-visible fixed)
+- BottomBar is `footer` landmark with brand (`h1`) and controls
+- No horizontal overflow at 320px — verify with `grid`, `flex`, `clamp()`
 
-- Loader visible on initial load with bradyperron text and progress bar that animates 0→100% then disappears.
-- Home shows at least 17 distinct project titles infinitely scrolling; scroll wheel and drag work; centered title largest.
-- Hover on title shows preview image behind (object-cover with slight scale).
-- Bottom left shows bradyperron mark with blurred white pill, visible after loader.
-- Bottom right has list and about buttons, both visible after loader, hover opacity 60%.
-- List button toggles to list view with same 17 titles + meta.
-- About button opens modal that slides up from 100% with portrait, manifesto text, instagram and email links (target blank for insta, mailto for email), and footer. Close works via button and Escape.
-- No horizontal overflow at 320px, no broken links.
-- All original content (titles exact including quotes) preserved.
-- Keyboard navigable: Tab reaches bottom buttons and project rows and about links.
-- Reduced motion respected.
+## 7. Component Breakdown (Maintainability)
 
-## 8. Scope Cut (Intentional)
+Split beyond ~500 lines. No circular imports. No commented-out blocks / unused imports / unreachable branches.
 
-Per AGENTS.md prefer smaller complete site:
-- Project detail pages (/harlaut-apparel etc.) cut — titles do not navigate to broken routes; click in infinite view either no-ops or shows toast/list detail to avoid dead ends. List view keeps on page.
-- WebGL canvas shader effects cut simplified to CSS transform and image preview layer — avoids bundling heavy custom WebGL that would be fragile.
-- Mux video previews cut for autoplay performance; use poster images only with link to YouTube where videoUrl present.
-- CMS fetching (Sanity) cut — static data file.
+| Component | File | Responsibility |
+|-----------|------|----------------|
+| `Loader` | `src/components/Loader.tsx` | White fullscreen loader, brand reveal, progress bar tied to real asset loading |
+| `InfiniteCanvas` | `src/components/InfiniteCanvas.tsx` | Default grid view: continuously recycling 4 desktop / 3 mobile poster cards with drift, rotation, hover enlarge |
+| `ListView` | `src/components/ListView.tsx` | Looping vertical title list + depth-scaled ring of 17 frames |
+| `BottomBar` | `src/components/BottomBar.tsx` | Fixed `h1` brand + view toggle + about trigger, staggered reveal after loader |
+| `ProjectMedia` | `src/components/ProjectMedia.tsx` | Renders local video loop when `previewVideoUrl` available, else `img` poster; preserves authoritative aspect ratio |
+| `ProjectPreview` | `src/components/ProjectPreview.tsx` | Fullscreen dialog: centered media envelope, `more info` scroll, metadata row with centered dots, 16:9 black field, `watch film` external link if present, close actions |
+| `AboutModal` | `src/components/AboutModal.tsx` | Fullscreen slide-up dialog: sticky header, staggered biography, portrait reveal + drift, contact links with rule + arrow hover, footer with current year |
+| `useModalFocus` | `src/lib/useModalFocus.ts` | Focus trap (Tab/Shift+Tab), initial focus, restore focus on close, Escape handling |
+| `motion` | `src/lib/motion.ts` | Named constants for durations (loader min, fade, scatter, about slide), easings `[0.22,0.61,0.36,1]` and `[0.16,1,0.3,1]` — no scattered magic numbers |
+| `projects` | `src/lib/projects.ts` | Single source of truth for all 17 projects + SETTINGS |
 
-## 9. Stack and Setup
+All meaningful images use project-title or portrait alt text; duplicated decorative images use empty `alt=""`.
 
-Next.js 16 App Router, React 19, TypeScript, Tailwind v4, Framer Motion for drag/scroll and about stagger.
+## 8. Page States & User Flows
 
-Setup: npm install && npm run dev → localhost:3000
-Build: npm run build
-Tests: npm run test:unit (checks manifest shape, project count, about content, navigation targets)
-Playwright: npm run test
+### 8.1 Initial Load & Entrance
 
-## 10. Assets Source
+1. On fresh page load, render white fullscreen loader above all content.
+2. Display `bradyperron` with upward text reveal + black progress bar beneath.
+3. Progress represents loading of 17 local project frames + local portrait — not a timer. Track real `img` preload.
+4. Loader minimum visible duration: `LOADER_MIN_MS = 1350ms` normal motion, `~150ms` for `prefers-reduced-motion`.
+5. After assets + minimum duration complete, fade loader out over `LOADER_FADE_MS = 500ms`.
+6. Reveal default view with 12 poster frames expanding from center into irregular full-screen scatter.
+7. Scatter holds long enough to read as deliberate composition, then fades to persistent moving grid after `GRID_INTRO_SECONDS = ~2.7s`.
+8. Reveal bottom brand + controls with staggered upward fades while media entrance runs.
+9. Reduced-motion: omit scatter movement, reveal stable grid immediately.
 
-All preview images from Sanity CDN https://cdn.sanity.io/images/qrv69xlg/production/... copied list in PRD and features.json. Portrait same CDN. Served locally per policy via next/image remotePatterns or copied to public/assets/bradyperron. No runtime CDN beyond image optimization. Documented in site.toml.
+### 8.2 Grid View (Default) — `data-view="grid"`
+
+- Desktop: 4 independently moving poster cards; Mobile: 3
+- Preserve source aspect ratio declared in `projects.ts`. Desktop cards up to ~58vw / max ~420px height; mobile up to ~68vw / ~340px height.
+- Cards travel continuously through mixed horizontal, vertical, diagonal paths that cross viewport; enter/leave beyond viewport edges, no visible stop at boundary.
+- When project has `previewVideoUrl`, play muted inline loop continuously inside active card; otherwise poster frame.
+- Recycle indefinitely: on path completion, assign next project and continue without jump.
+- Gentle rotation + subtle hover enlargement (no imagery obscured).
+- Wheel + pointer drag add directional velocity; momentum eases back toward base drift.
+- Each visible card is keyboard-focusable `button` named `Open {title} preview` via `aria-label`.
+- Activate opens fullscreen preview without URL change.
+
+### 8.3 List View — `data-view="list"`
+
+Triggered by fixed `list` control crossfading from grid. While active, label becomes `grid`.
+
+- Render all 17 titles in vertically looping list centered in viewport.
+- Baseline spacing `64px`, wrap positions continuously both directions.
+- Title nearest center: fully black, larger, widely tracked (`0.32em`). Fade progressively with distance from center.
+- Couple title movement to ring of 17 poster frames below/around title list.
+- Ring projection: inside-looking-out virtual camera, single outward-facing arc visible. Center of arc: smaller/farther; toward clipped viewport edges: larger/closer. Never render second near-side arc.
+- Geometry: virtual FOV ~50deg, camera z ~12, ring center ~z 2.2 / y -2, radii ~7.5 desktop / 5.5 mobile (tuned values in `ListView` + `motion` constants).
+- Only active project's local preview loop plays; others use still frames.
+- Wheel + drag move titles + ring together with easing + wraparound.
+- Title buttons in tab order; ring images are redundant visual controls outside keyboard order.
+- Activating title or ring image opens matching project preview.
+
+### 8.4 Project Preview Dialog
+
+Opens inline above portfolio on project selection.
+
+**Opening view:**
+- Fade white dialog (`role="dialog"`, `aria-modal="true"`, labelled by project title `h2`) into view
+- Close control `56–64px` at upper-right
+- Center selected project's local preview loop within ~82vw × 72vh envelope when available; else poster frame. Preserve declared aspect ratio.
+- Overlay compact `more info` control + downward cue at center of poster. Activates smooth scroll to info section (within dialog scroll container marked `data-modal-scroll="true"`).
+
+**Info & Film:**
+- Exact project title as dialog `h2` heading
+- Row: `client · year · type` separated by centered dots (·)
+- Below: poster on full-width black 16:9 field using `object-contain`
+- If `videoUrl` exists: centered `watch film ↗` link over field; new tab + safe external attributes; only after explicit activation
+- If no `videoUrl`: omit link, no empty/disabled control
+- End: centered `close` action
+
+**Dialog behavior:**
+- `useModalFocus` moves focus into dialog on open, traps Tab / Shift+Tab, restores focus to opener on close
+- Both close controls + Escape key close dialog
+- Background scroll locked, page beneath `inert` + `aria-hidden` while open
+- Visible focus states preserved
+
+### 8.5 About Panel Dialog
+
+Fixed `about` control opens white fullscreen dialog sliding upward from below viewport over `ABOUT_SLIDE_MS = 750ms`.
+
+- Sticky header: left `about — bradyperron`, right close control min `44×44px`
+- Biography (`longDescription` + `Videographer / Editor / Director`) revealed as individually masked words with short stagger (Framer Motion)
+- Local 4:5 portrait at two-thirds width mobile, right 4 columns of 12-col grid desktop. Vertical clip reveal then very slow subtle drift.
+- Left side lower desktop grid: `(contact)` label, Instagram link, email link, discipline line
+- Contact links: thin black rules + arrow that moves diagonally on hover
+- Footer low-contrast: `bradyperron` + current year
+- Same dialog focus management, Escape handling, background inert, focus restoration as project preview
+
+## 9. Motion
+
+- Use Framer Motion for entrances, view transitions, wheel/drag-driven motion, modal animation
+- Centralize reusable easing + duration values in `lib/motion.ts`; no magic numbers in components
+- Default easing editorial: near `[0.22, 0.61, 0.36, 1]` (entrance/stagger) and `[0.16, 1, 0.3, 1]` (smooth out)
+- Shared `MotionConfig reducedMotion="user"` + CSS `prefers-reduced-motion: reduce` => stop continuous media, skip scatter, reduce durations to effectively instant
+
+Constants (example naming — keep named, not scattered):
+
+```ts
+LOADER_MIN_MS = 1350
+LOADER_MIN_REDUCED_MS = 150
+LOADER_FADE_MS = 500
+GRID_INTRO_SECONDS = 2.7
+ABOUT_SLIDE_MS = 750
+EASE_DEFAULT = [0.22, 0.61, 0.36, 1]
+EASE_SMOOTH = [0.16, 1, 0.3, 1]
+```
+
+## 10. Accessibility & Semantics
+
+- One page-level `main`, `footer` landmark for persistent controls, headings in logical order: brand mark as `h1`, dialog titles as `h2`, `p` styled as headline for about statement (or `h2` for about)
+- Skip link to `#main-content`
+- All meaningful images use project-title / portrait alt text; decorative duplicates empty alt
+- Every action: native `button` or `a` with clear accessible name + min 44px target in both dimensions
+- Dialogs fully keyboard operable: Tab, Shift+Tab trapped, Escape closes, focus restored
+- External links open only after explicit user activation; no auto-play navigations
+- Focus states: 2px black offset visible (global CSS)
+- Avoid left-to-right assumptions for future i18n (no hard-coded LTR positioning logic)
+- Touch targets min 44px for bottom buttons + about links
+
+## 11. Responsive Behavior
+
+- Primary breakpoint: `768px`
+- Grid: 4 cards desktop, 3 mobile; sizes via `vw` + max-height clamps; verified `flex`/`grid`/`clamp()`
+- List: tighter ring + title spacing on mobile
+- About: stacked single column mobile, 12-col grid desktop
+- At 320px: no element may create horizontal document overflow — test fixed bottom bar, ring projection, modal header
+- Bottom controls remain usable at all supported sizes
+
+## 12. Assets
+
+Use only committed local runtime assets under `public/`:
+
+- `public/assets/bradyperron/home/*.webp` — 17 project frames (authoritative aspect ratios in `projects.ts`)
+- `public/assets/bradyperron/video/*.mp4` — 4 muted homepage + preview loops (Lo & Behold, Timberland, Nuance, Valerie Omari)
+- `public/assets/bradyperron/brady-portrait.jpg` — about portrait 4:5
+- `public/fonts/fraunces-thin.ttf` + `public/fonts/fraunces-thin-italic.ttf` + `public/fonts/OFL.txt` (SIL OFL 1.1) — locally hosted typography
+- `public/favicon.ico`, `public/icon.svg`, `public/apple-icon.png` — browser + Apple touch identity
+
+Constraints:
+- Do not replace local assets with remote CDN URLs at render time
+- Do not introduce additional font weights unless verified and licensed
+- Source provenance documented in `site.toml` and `src/lib/projects.ts` with local paths
+- No automatic third-party media or tracking requests during normal rendering; only user-initiated external links (YouTube/Vimeo, Instagram, mailto)
+
+## 13. Technical Constraints & Maintainability
+
+- Framework: Next.js 16 App Router, React 19, TypeScript strict, Tailwind CSS 4
+- Single page `/` only by design; keep clean mapping, avoid placeholder routes that 404
+- Extract repeated project data into `lib/projects.ts`
+- Split files beyond ~500 lines: `Loader`, `InfiniteCanvas`, `ListView`, `BottomBar`, `AboutModal`, `ProjectPreview`, `ProjectMedia`
+- Replace magic numbers (450ms, cubic-bezier) with named constants in `lib/motion.ts`
+- Keep components composable, avoid circular imports
+- No commented-out blocks, unused imports, unreachable branches
+- No obfuscated code, minified committed bundles, hidden provenance
+- No `dist`/`build`/`node_modules` committed
+- No secrets committed
+- `.env.example` empty / explanatory only
+
+Build + quality gates:
+
+```bash
+npm install
+npm run dev        # http://localhost:3000
+npm run lint
+npm run test:unit
+npm run build
+npm run test       # Playwright E2E on production build, port 4173 isolated
+```
+
+## 14. Acceptance Criteria
+
+- [ ] Only `/` is public product route; all project + about content opens inline via dialogs, no internal dead ends or placeholder project routes
+- [ ] Brand mark `bradyperron` as `h1` visible at all sizes, does not navigate to missing page
+- [ ] Loader reports real local-image preload progress (17 frames + portrait), respects minimum intro delay (1.35s normal / ~150ms reduced-motion), fades 500ms
+- [ ] After loader: 12-image scatter from center, then settles into persistent grid after ~2.7s; reduced-motion skips scatter and reveals stable grid immediately
+- [ ] Grid continuously recycles 4 media cards desktop / 3 mobile across varied paths; preview loops autoplay muted + inline where available; wheel/drag adds momentum; keyboard focusable `Open {title} preview` buttons
+- [ ] List control crossfades to looping 17-title list with centered active title enlarged + widely tracked, progressive fade by distance; media ring depth-scaled outward-facing arc only; wheel/drag moves both; active preview loop plays when available
+- [ ] All 17 projects discoverable and open corresponding fullscreen preview via grid card, list title, or ring image
+- [ ] Project preview dialog: centered media envelope (82vw × 72vh) preserving aspect, `more info` scroll, exact title as `h2`, `client · year · type` dotted row, black 16:9 field poster, `watch film ↗` external link only when `videoUrl` exists, close controls, Escape handling, focus trap + restore, background `inert` + scroll lock, no empty controls
+- [ ] About dialog: slides up 750ms, sticky header, staggered biography words, portrait vertical-clip reveal + slow drift, contact label + Instagram + email + discipline, hover arrow motion, footer brand + current year, same focus management as preview
+- [ ] Fixed bottom controls (`bradyperron`, `list`/`grid`, `about`) remain usable at all viewport sizes including 320px
+- [ ] Layout has no horizontal overflow at 320px
+- [ ] Typography uses locally hosted Fraunces Thin; utility labels tracked; brand fluid scaling correct
+- [ ] No local image, video, font, or icon request returns 404 / empty file
+- [ ] No automatic third-party media or tracking requests during normal rendering; external destinations only after user activation
+- [ ] Semantic HTML: `header`/`main`/`footer`, single `h1`, `h2` dialog titles, buttons for actions, links for navigation, skip link, portrait + previews alt text, decorative dupes empty alt, 44px min touch targets, 2px focus outline offset
+- [ ] Motion respects `prefers-reduced-motion`; continuous motion stopped, durations instant
+- [ ] Lint, unit tests, Playwright checks, production build succeed before deployment
+- [ ] PRD, `site.toml`, `features.json`, and implementation stay synchronized; no original-site references
+
+## 15. Out of Scope / Scope Discipline
+
+Explicitly excluded and must not be introduced without verification + PRD update:
+
+- CMS (Sanity, Contentful, etc.)
+- WebGL shader complexity or canvas-based renderers beyond Framer Motion DOM motion
+- Remote video SDKs (Mux player, Vimeo/YouTube embeds on homepage)
+- Multi-route IA (`/work`, `/project/[slug]`, etc.)
+- Analytics, pixels, trackers
+- Complex filter/search UI — discovery is spatial (grid drift + list ring), not faceted
+
+If cutting further scope to keep site complete: prefer smaller complete site over larger broken one. Document cuts in this PRD.
+
+## 16. Deployment & Submission Checklist
+
+- [ ] `npm run build` + `npm run test:unit` + `npm run lint` + `npm run test` green
+- [ ] Screenshots captured: `screenshots/home-desktop.png` (1440×900) + `screenshots/home-mobile.png` (390×844) for `/`
+- [ ] `site.toml` asset lists match `public/` runtime files
+- [ ] No secrets, no `dist`/`build`/`node_modules` committed
+- [ ] PRD contains no references to external source sites — standalone spec only
