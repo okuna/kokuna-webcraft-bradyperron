@@ -4,6 +4,7 @@ A single-page Web Craft 1.0 portfolio for filmmaker Brady Perron. Sparse, image-
 
 **GitHub:** https://github.com/okuna/kokuna-webcraft-bradyperron
 **Live:** https://kokuna-webcraft-bradyperron.vercel.app
+**Walkthrough:** https://www.internalfb.com/intern/px/p/cvjCL
 - Production (immutable): https://kokuna-webcraft-bradyperron-ky954izbi-aai-webcraft.vercel.app
 - Team alias: https://kokuna-webcraft-bradyperron-aai-webcraft.vercel.app
 - Vercel Inspector: https://vercel.com/aai-webcraft/kokuna-webcraft-bradyperron/EuAz7D5zwAM7rL2FqC8SeLfLV5Jb
