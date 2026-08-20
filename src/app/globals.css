@@ -1,0 +1,90 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #000000;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: "Acumin Pro", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-acumin: "Acumin Pro", "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html {
+  scroll-behavior: smooth;
+  background: var(--background);
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  overflow-x: hidden;
+}
+
+html::-webkit-scrollbar {
+  display: none;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: "Acumin Pro", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  overflow-x: hidden;
+}
+
+/* Original site uses font-acumin class - mimic with tight tracking */
+.font-acumin {
+  font-family: "Acumin Pro", "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+/* Project title rows - mimic original's will-change and transitions */
+.project-title-row {
+  will-change: transform, opacity, letter-spacing, font-size;
+  transition: letter-spacing 450ms cubic-bezier(0.22, 0.61, 0.36, 1),
+    font-size 450ms cubic-bezier(0.22, 0.61, 0.36, 1),
+    color 450ms ease, opacity 350ms ease, transform 450ms cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+.project-title-text {
+  display: inline-block;
+}
+
+/* About word staggered reveal */
+.about-word {
+  will-change: transform;
+}
+
+/* Layout name pill */
+.layout-name {
+  will-change: opacity;
+  transition: opacity 0.5s ease;
+}
+
+.layout-button {
+  will-change: opacity;
+  transition: opacity 0.3s ease;
+}
+
+/* Hide scrollbar for modal */
+[data-modal-scroll="true"] {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+[data-modal-scroll="true"]::-webkit-scrollbar {
+  display: none;
+}
+
+/* Selection */
+::selection {
+  background: #000;
+  color: #fff;
+}
+
+:focus-visible {
+  outline: 2px solid #000;
+  outline-offset: 2px;
+}

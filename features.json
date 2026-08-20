@@ -1,0 +1,64 @@
+{
+  "site": "bradyperron",
+  "original_url": "https://www.bradyperron.com/",
+  "category": "replication",
+  "description": "Brady Perron - Brooklyn-based Videographer/Director/Editor/Photographer portfolio",
+  "features": {
+    "loader": {
+      "has": true,
+      "details": "Initial full-screen white loader with bradyperron text and progress bar that animates to 100%, then hides with opacity transition"
+    },
+    "layout": {
+      "header": "none - minimal site, no traditional header. Bottom fixed bar only: left bradyperron name, right list/about buttons",
+      "background": "white #FFFFFF, black text",
+      "font": "Acumin / Helvetica Neue / sans-serif - tracking tight, all lowercase bradyperron mark",
+      "canvas": "Full viewport canvas element for potential WebGL image trail — replica uses DOM infinite scroll + image preview layer to mimic"
+    },
+    "home_infinite_scroll": {
+      "mechanism": "Project titles duplicated 2x for infinite loop, vertical scroll with inertia, each row centered horizontally left-1/2 top-1/2 with translate, absolute positioning originally driven by WebGL scroll progress",
+      "interaction": "Wheel / drag scroll advances list; hover on title reveals preview image behind with scale and opacity transition; titles have letter-spacing and font-size animation on proximity to center"
+    },
+    "project_list": {
+      "count": 17,
+      "titles": [
+        "Harlaut Apparel Winter Campaign",
+        "\"Lo & Behold\" Henrik Harlaut",
+        "Timberland Built for the Bold",
+        "\"Nuance\" Phil Casabon x Armada Skis",
+        "Valerie Omari",
+        "NOVOS Labs",
+        "JACK MOORE HEAD IN SAND",
+        "Shy of Summer II",
+        "\"I'll See You on the Other Side\" Omar Al-Sudani x Office Mag",
+        "686 Jogger",
+        "ERNE",
+        "Elaine Hersby",
+        "The North Face | Freeride",
+        "\"Something in the Water\" Jake Mageau x Level 1",
+        "The North Face \"COALESCE\"",
+        "ATTN for bite.",
+        "Good Bacteria"
+      ]
+    },
+    "bottom_bar": {
+      "layout_name": "Fixed bottom left, bg white/85 backdrop-blur-md, opacity 0 initially then fades in after loader, text bradyperron lowercase",
+      "list_button": "Bottom right 16 (64px left of edge) — toggles between infinite canvas view and plain list view",
+      "about_button": "Bottom right 4 — opens about modal"
+    },
+    "about_modal": {
+      "trigger": "Click about button, slides up from translateY(100%) to 0 with cubic-bezier, pointer-events auto, overflow-y auto",
+      "content": {
+        "eyebrow": "about — bradyperron with tracking 0.3em",
+        "headline": "Large fluid typography clamp 1.7rem to 3.75rem, 4.4vw, line-height 1.06, letter-spacing -0.018em, max-width 17em: Brady Perron is a Brooklyn-based Videographer/Director/Editor/Photographer. Rhythm. Range. Poetic. Dynamic.",
+        "image": "Aspect 4/5, w-2/3 mobile, full md:col-4, portrait of Brady from Sanity CDN",
+        "contact": "instagram and email with arrows ↗ and border-t, hover opacity 55%",
+        "footer": "bradyperron © 2026 with border-t"
+      }
+    },
+    "animations": {
+      "loader": "Text slides up from top-100 opacity 0, progress bar width 0% to 100%",
+      "titles": "Each project-title-row has will-change transform, opacity, letter-spacing, font-size; transition letter-spacing 450ms cubic-bezier(0.22,0.61,0.36,1)",
+      "about_words": "Individual words wrapped in overflow-hidden with about-word inline-block that can be staggered via GSAP in original — replica uses framer-motion stagger"
+    }
+  }
+}

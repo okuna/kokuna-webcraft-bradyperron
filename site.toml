@@ -1,0 +1,40 @@
+[site]
+name = "kokuna-webcraft-bradyperron"
+url = "https://kokuna-webcraft-bradyperron.vercel.app"
+original_url = "https://www.bradyperron.com/"
+walkthrough = ""
+description = "Replication of Brady Perron portfolio — Brooklyn-based videographer/director/editor/photographer. Minimal white canvas with infinite scrolling project titles, hover image previews, bottom fixed navigation (bradyperron / list / about), slide-up about modal, and initial loader. Rhythm. Range. Poetic. Dynamic."
+category = "replication"
+
+[site.tech]
+stack = ["Next.js", "Tailwind CSS", "TypeScript", "Framer Motion"]
+hosting = "vercel"
+hosting_access_granted = false
+
+[site.assets]
+images = [
+  "public/assets/bradyperron/brady-portrait.jpg",
+  "public/assets/bradyperron/harlaut-apparel.jpg",
+  "public/assets/bradyperron/lo-behold.jpg",
+  "public/assets/bradyperron/timberland.jpg",
+  "public/assets/bradyperron/nuance.jpg",
+  "public/assets/bradyperron/valerie-omari.jpg"
+]
+videos = []
+models_3d = []
+svgs = []
+
+[site.prd]
+file = "PRD.md"
+setup = "npm install && npm run dev"
+backend = "Static site, no backend"
+
+[[screenshots]]
+route = "/"
+file = "screenshots/desktop-home.png"
+device = "desktop"
+
+[[screenshots]]
+route = "/"
+file = "screenshots/mobile-home.png"
+device = "mobile"

@@ -1,0 +1,80 @@
+{
+  "sites": {
+    "replica": {
+      "baseUrl": "http://localhost:3000"
+    },
+    "original": {
+      "baseUrl": "https://www.bradyperron.com"
+    }
+  },
+  "pages": [
+    {
+      "name": "home",
+      "paths": {
+        "replica": "/",
+        "original": "/"
+      }
+    },
+    {
+      "name": "project",
+      "paths": {
+        "replica": "/project/harlaut-apparel",
+        "original": "/harlaut-apparel"
+      }
+    }
+  ],
+  "breakpoints": [
+    { "name": "480-mobile", "width": 480, "height": 812, "mobile": true },
+    { "name": "768-tablet", "width": 768, "height": 1024, "mobile": true },
+    { "name": "1200-large", "width": 1200, "height": 900, "mobile": false },
+    { "name": "1440-xl", "width": 1440, "height": 900, "mobile": false },
+    { "name": "1920-xxl", "width": 1920, "height": 1080, "mobile": false }
+  ],
+  "compare": {
+    "submitBreakpoints": ["480-mobile", "1440-xl"],
+    "outputDir": "screenshots",
+    "checklist": "docs/comparison-checklist.md",
+    "omissions": {
+      "home": {
+        "mobile": [],
+        "desktop": []
+      },
+      "project": {
+        "mobile": [],
+        "desktop": []
+      }
+    },
+    "navComparison": {
+      "enabled": true,
+      "checks": ["logo-position", "menu-items", "active-states", "mobile-hamburger", "sticky-behavior"]
+    },
+    "animationComparison": {
+      "enabled": true,
+      "types": ["page-load", "scroll", "hover"]
+    }
+  },
+  "animations": {
+    "targets": [
+      {
+        "page": "home",
+        "selectors": [".project-title-row", ".layout-name", ".layout-button"]
+      }
+    ],
+    "breakpoints": ["480-mobile", "1440-xl"],
+    "outputDir": "screenshots/animations",
+    "hover": {
+      "selectors": ["a", "button", ".project-title-row", "[data-hover]"],
+      "burstFrames": 5,
+      "burstInterval": 100,
+      "cooldown": 300,
+      "captureRadius": 50
+    },
+    "scroll": {
+      "stepSize": 300,
+      "settleTime": 500,
+      "burstFrames": 3,
+      "burstInterval": 150,
+      "selectors": ["[data-animate]", ".animate-on-scroll"]
+    }
+  }
+}
