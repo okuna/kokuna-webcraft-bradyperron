@@ -1,6 +1,6 @@
 [site]
 name = "kokuna-webcraft-bradyperron"
-url = ""
+url = "https://kokuna-webcraft-bradyperron.vercel.app"
 original_url = "https://www.bradyperron.com/"
 description = "Single-page Brady Perron portfolio replication with a preloading brand loader, local poster and video media, an animated Fraunces grid, a looping title list and media ring, fullscreen project previews, and an about panel."
 category = "webcraft-1.0"
@@ -8,7 +8,7 @@ category = "webcraft-1.0"
 [site.tech]
 stack = ["Next.js 16", "React 19", "TypeScript", "Tailwind CSS 4", "Framer Motion"]
 hosting = "vercel"
-hosting_access_granted = false
+hosting_access_granted = true
 
 [site.assets]
 images = [
