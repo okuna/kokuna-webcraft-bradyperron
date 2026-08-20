@@ -1,5 +1,8 @@
 # Setup — Brady Perron Portfolio
 
+**GitHub:** https://github.com/okuna/kokuna-webcraft-bradyperron
+**Vercel:** https://kokuna-webcraft-bradyperron.vercel.app
+
 ## Requirements
 
 - Node.js 20.9 or newer
