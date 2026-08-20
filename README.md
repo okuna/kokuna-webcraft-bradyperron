@@ -1,8 +1,12 @@
 # Brady Perron Portfolio
 
-A single-page Web Craft 1.0 replication of [bradyperron.com](https://www.bradyperron.com/). The experience is an image-led portfolio with a preloading brand sequence, two animated browsing modes, fullscreen project previews, and an about panel.
+A single-page Web Craft 1.0 portfolio for filmmaker Brady Perron. Sparse, image-led, editorial and cinematic with two interchangeable project browsers, fullscreen project previews, and an about panel.
 
-The replica is implemented locally but has not yet been deployed, transferred, or recorded for submission.
+**Live:** https://kokuna-webcraft-bradyperron.vercel.app
+- Production (immutable): https://kokuna-webcraft-bradyperron-ky954izbi-aai-webcraft.vercel.app
+- Team alias: https://kokuna-webcraft-bradyperron-aai-webcraft.vercel.app
+- Vercel Inspector: https://vercel.com/aai-webcraft/kokuna-webcraft-bradyperron/EuAz7D5zwAM7rL2FqC8SeLfLV5Jb
+- Team: `aai-webcraft` (`team_cTx8vJkH2Yt4oQRCXiogNYAn`) — SSO protected, Meta-only access
 
 ## Experience
 

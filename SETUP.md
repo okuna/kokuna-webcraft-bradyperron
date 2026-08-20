@@ -94,7 +94,34 @@ Project dialogs may open public YouTube or Vimeo film pages. The about dialog ma
 
 ## Deployment
 
-Deployment has not been completed. Before submission, deploy privately to Vercel, publish the Meta-only firewall rules, transfer the project to the AAI -Web Craft team, reconnect the repository, then fill `site.url` and set `site.tech.hosting_access_granted = true` in `site.toml`.
+**Vercel Production (AAI -Web Craft team)**
+
+- **Stable alias (main):** https://kokuna-webcraft-bradyperron.vercel.app
+- **Immutable production:** https://kokuna-webcraft-bradyperron-ky954izbi-aai-webcraft.vercel.app
+- **Team alias:** https://kokuna-webcraft-bradyperron-aai-webcraft.vercel.app
+- **Additional alias:** https://kokuna-webcraft-bradyperron-chi.vercel.app
+- **Inspector:** https://vercel.com/aai-webcraft/kokuna-webcraft-bradyperron/EuAz7D5zwAM7rL2FqC8SeLfLV5Jb
+- **Project ID:** `prj_l2McIoCt1Q2ZqasTLuJOTSkPNdxI`
+- **Team:** `aai-webcraft` (`team_cTx8vJkH2Yt4oQRCXiogNYAn`)
+- **Framework:** Next.js 16.3.0 (Turbopack), static prerender `/`
+- **Status:** Ready, SSO protected (302 to `vercel.com/sso-api`) — Meta-only firewall
+- **Build:** 44s, 4 cores / 8GB, iad1, 365 packages
+
+Deployment was performed via Vercel CLI authenticated as `kokuna-5671`:
+
+```bash
+rm -rf .vercel
+vercel --scope aai-webcraft --prod --yes
+vercel alias rm kokuna-webcraft-bradyperron.vercel.app --scope test-team1-please-ignore --yes
+vercel alias set https://kokuna-webcraft-bradyperron-ky954izbi-aai-webcraft.vercel.app kokuna-webcraft-bradyperron.vercel.app --scope aai-webcraft
+vercel remove kokuna-webcraft-bradyperron --scope test-team1-please-ignore --yes  # cleanup personal team copy
+```
+
+`site.toml` updated:
+```toml
+url = "https://kokuna-webcraft-bradyperron.vercel.app"
+hosting_access_granted = true
+```
 
 ## Screenshots
 
