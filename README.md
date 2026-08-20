@@ -2,7 +2,8 @@
 
 A single-page Web Craft 1.0 portfolio for filmmaker Brady Perron. Sparse, image-led, editorial and cinematic with two interchangeable project browsers, fullscreen project previews, and an about panel.
 
-**GitHub:** https://github.com/okuna/kokuna-webcraft-bradyperron
+**GitHub (Codimango):** https://github.com/codimango/kokuna-webcraft-bradyperron
+**GitHub (Personal):** https://github.com/okuna/kokuna-webcraft-bradyperron
 **Live:** https://kokuna-webcraft-bradyperron.vercel.app
 **Walkthrough:** https://www.internalfb.com/intern/px/p/cvjCL
 - Production (immutable): https://kokuna-webcraft-bradyperron-ky954izbi-aai-webcraft.vercel.app
