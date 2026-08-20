@@ -157,4 +157,4 @@ White viewport with header, main, and footer landmarks. Main carries skip destin
 - No local image, video, font, or icon request returns empty or missing; no automatic third-party media or tracking requests occur during normal rendering; external destinations open only after explicit user activation.
 - Semantics include header, main, footer, single h1, h2 dialog titles, buttons for actions, links for navigation, skip link, portrait and preview alternative text, decorative duplicates with empty alternative text, minimum touch targets, and offset focus outline.
 - Motion respects reduced-motion preference with continuous motion stopped and durations made effectively instant.
-- Validation checks for linting, unit tests, and end-to-end browsing and dialog behavior succeed before release.
+- Browsing and dialog interactions remain smooth and error-free across desktop and mobile viewports with keyboard, mouse, and touch inputs.
