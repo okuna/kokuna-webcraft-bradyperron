@@ -49,6 +49,17 @@ function coordinateSpan(points: Array<{ x: number; y: number }>, axis: "x" | "y"
   return Math.max(...values) - Math.min(...values);
 }
 
+function maxCenterDisplacement(
+  before: Array<{ x: number; y: number }>,
+  after: Array<{ x: number; y: number }>,
+) {
+  return Math.max(
+    ...before.map((point, index) =>
+      Math.hypot(point.x - after[index].x, point.y - after[index].y),
+    ),
+  );
+}
+
 async function elementSizes(locator: Locator) {
   return locator.evaluateAll((elements) =>
     elements.map((element) => {
@@ -90,28 +101,51 @@ test.describe("bradyperron replication", () => {
     });
     const introCards = page.locator('[data-intro-card]');
     const activeCards = page.locator('[data-intro-card="active"]:visible');
+    const revealCenters = await elementCenters(introCards);
+    expect(coordinateSpan(revealCenters, "x")).toBeLessThan(300);
+    expect(coordinateSpan(revealCenters, "y")).toBeLessThan(150);
+
     await expect(introCards).toHaveCount(16);
     await expect(activeCards).toHaveCount(DESKTOP_CARD_COUNT);
     await expect(activeCards.first()).toBeDisabled();
+    const activeVideo = activeCards.nth(1).locator("video");
+    await expect(activeVideo).toHaveCount(1);
+    await activeVideo.evaluate((element) => {
+      element.setAttribute("data-media-continuity-token", "opening-video");
+    });
 
     await activeCards.first().evaluate((element) => {
       element.setAttribute("data-continuity-token", "opening-card");
     });
     await expect(loader).toBeHidden({ timeout: 10_000 });
 
-    const revealCenters = await elementCenters(introCards);
-    expect(coordinateSpan(revealCenters, "x")).toBeLessThan(300);
-    expect(coordinateSpan(revealCenters, "y")).toBeLessThan(150);
-
     await page.waitForTimeout(900);
     const dispersedCenters = await elementCenters(introCards);
     expect(coordinateSpan(dispersedCenters, "x")).toBeGreaterThan(1_200);
     expect(coordinateSpan(dispersedCenters, "y")).toBeGreaterThan(900);
 
+    await expect(activeCards.first()).toHaveAttribute(
+      "data-intro-settled",
+      "true",
+    );
+    await expect(grid).toHaveAttribute("data-intro-phase", "dispersing");
+    const lateIntroCenters = await elementCenters(activeCards.first());
+    await page.waitForTimeout(250);
+    await expect(grid).toHaveAttribute("data-intro-phase", "dispersing");
+    expect(
+      maxCenterDisplacement(
+        lateIntroCenters,
+        await elementCenters(activeCards.first()),
+      ),
+    ).toBeGreaterThan(2);
+
     await waitForGridIntro(page);
     await expect(page.locator('[data-intro-card="departing"]')).toHaveCount(0);
     await expect(
       page.locator('[data-continuity-token="opening-card"]'),
+    ).toHaveCount(1);
+    await expect(
+      page.locator('[data-media-continuity-token="opening-video"]'),
     ).toHaveCount(1);
 
     const cards = page.locator(`${gridCardSelector}:visible`);
@@ -147,9 +181,11 @@ test.describe("bradyperron replication", () => {
     expect(destinations[3].x).toBeGreaterThan(viewport.width);
     expect(destinations[3].y).toBeGreaterThan(viewport.height);
 
-    const before = await inlineTransforms(cards);
+    const before = await elementCenters(cards);
     await page.waitForTimeout(300);
-    expect(await inlineTransforms(cards)).not.toEqual(before);
+    expect(maxCenterDisplacement(before, await elementCenters(cards))).toBeGreaterThan(
+      2,
+    );
   });
 
   test("the grid responds to wheel and drag input without opening a project", async ({
@@ -160,16 +196,20 @@ test.describe("bradyperron replication", () => {
 
     const cards = page.locator(`${gridCardSelector}:visible`);
     const grid = page.locator('[data-view="grid"]');
-    const beforeWheel = await inlineTransforms(cards);
+    const beforeWheel = await elementCenters(cards);
     await grid.hover({ position: { x: 20, y: 20 } });
     await page.mouse.wheel(0, 1_200);
     await page.waitForTimeout(300);
-    expect(await inlineTransforms(cards)).not.toEqual(beforeWheel);
+    expect(
+      maxCenterDisplacement(beforeWheel, await elementCenters(cards)),
+    ).toBeGreaterThan(2);
 
-    const beforeDrag = await inlineTransforms(cards);
+    const beforeDrag = await elementCenters(cards);
     await dragSurface(page, '[data-view="grid"]', 260);
     await page.waitForTimeout(300);
-    expect(await inlineTransforms(cards)).not.toEqual(beforeDrag);
+    expect(
+      maxCenterDisplacement(beforeDrag, await elementCenters(cards)),
+    ).toBeGreaterThan(2);
     await expect(page.getByRole("dialog")).toHaveCount(0);
   });
 
@@ -324,9 +364,11 @@ test.describe("bradyperron replication", () => {
     await expect(page.getByRole("button", { name: "Open about modal" })).toBeVisible();
 
     await page.waitForTimeout(100);
-    const before = await inlineTransforms(cards);
+    const before = await elementCenters(cards);
     await page.waitForTimeout(300);
-    expect(await inlineTransforms(cards)).toEqual(before);
+    expect(maxCenterDisplacement(before, await elementCenters(cards))).toBeLessThan(
+      0.1,
+    );
   });
 
   test("all rendered links are external, mail, or valid in-page targets", async ({

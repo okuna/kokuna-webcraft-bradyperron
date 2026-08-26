@@ -133,6 +133,7 @@ export function InfiniteCanvas({ ready, introActive, onOpenProject }: Props) {
     })),
   );
   const containerRef = useRef<HTMLDivElement>(null);
+  const pathRefs = useRef<Array<HTMLDivElement | null>>([]);
   const cardRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const cardsRef = useRef(cards);
   const progressRef = useRef(
@@ -142,6 +143,7 @@ export function InfiniteCanvas({ ready, introActive, onOpenProject }: Props) {
   );
   const targetVelocityRef = useRef(0);
   const velocityRef = useRef(0);
+  const settledIntroSlotsRef = useRef(new Set<number>());
   const nextProjectRef = useRef(DESKTOP_ACTIVE_MEDIA);
   const previousActiveCountRef = useRef(DESKTOP_ACTIVE_MEDIA);
   const reduceMotion = useReducedMotion();
@@ -188,6 +190,10 @@ export function InfiniteCanvas({ ready, introActive, onOpenProject }: Props) {
     cardsRef.current = cards;
   }, [cards]);
 
+  useEffect(() => {
+    if (!ready) settledIntroSlotsRef.current.clear();
+  }, [ready]);
+
   const nudgeVelocity = useCallback((amount: number) => {
     targetVelocityRef.current = Math.max(
       -MAX_SCROLL_VELOCITY,
@@ -206,7 +212,7 @@ export function InfiniteCanvas({ ready, introActive, onOpenProject }: Props) {
   }, [nudgeVelocity]);
 
   useAnimationFrame((_, delta) => {
-    if (!ready || introActive || reduceMotion) return;
+    if (!ready || reduceMotion) return;
     const seconds = Math.min(delta, 50) / 1000;
     velocityRef.current +=
       (targetVelocityRef.current - velocityRef.current) * VELOCITY_LERP;
@@ -217,6 +223,8 @@ export function InfiniteCanvas({ ready, introActive, onOpenProject }: Props) {
     const boost = Math.min(26, Math.abs(velocityRef.current) * 15);
 
     for (let slot = 0; slot < activeCount; slot += 1) {
+      if (introActive && !settledIntroSlotsRef.current.has(slot)) continue;
+
       let progress = progressRef.current[slot] ?? 0;
       progress += BASE_PROGRESS_PER_SECOND * (1 + boost) * direction * seconds;
 
@@ -248,9 +256,10 @@ export function InfiniteCanvas({ ready, introActive, onOpenProject }: Props) {
       }
 
       progressRef.current[slot] = progress;
-      const element = cardRefs.current[slot];
+      const pathElement = pathRefs.current[slot];
+      const cardElement = cardRefs.current[slot];
       const project = PROJECTS[cardsRef.current[slot].projectIndex];
-      if (!element || !project) continue;
+      if (!pathElement || !cardElement || !project) continue;
       const cardSize = getCardSize(project, viewport);
       const position = getPathPosition(
         cardsRef.current[slot].projectIndex,
@@ -259,9 +268,9 @@ export function InfiniteCanvas({ ready, introActive, onOpenProject }: Props) {
         cardSize.width,
         cardSize.height,
       );
-      element.style.width = `${cardSize.width}px`;
-      element.style.height = `${cardSize.height}px`;
-      element.style.transform = `translate3d(${position.x}px, ${position.y}px, 0)`;
+      cardElement.style.width = `${cardSize.width}px`;
+      cardElement.style.height = `${cardSize.height}px`;
+      pathElement.style.transform = `translate3d(${position.x}px, ${position.y}px, 0)`;
     }
   });
 
@@ -373,8 +382,12 @@ export function InfiniteCanvas({ ready, introActive, onOpenProject }: Props) {
             );
           const animateFromCenter = ready && introActive && !reduceMotion;
           const cardAnimation = ready
-            ? { x: position.x, y: position.y, scale: 1 }
-            : { x: 0, y: 0, scale: INTRO_START_SCALE };
+            ? { x: 0, y: 0, scale: 1 }
+            : {
+                x: -position.x,
+                y: -position.y,
+                scale: INTRO_START_SCALE,
+              };
 
           return (
             <div
@@ -385,55 +398,74 @@ export function InfiniteCanvas({ ready, introActive, onOpenProject }: Props) {
                 zIndex: slot + 1,
               }}
             >
-              <motion.button
+              {/* Framer owns the inner intro offset; the frame loop owns this path transform. */}
+              <div
                 ref={(element) => {
-                  cardRefs.current[slot] = element;
+                  pathRefs.current[slot] = element;
                 }}
-                data-intro-card="active"
-                type="button"
-                disabled={!ready || (introActive && !reduceMotion)}
-                onClick={() => onOpenProject(project)}
-                aria-label={`Open ${project.title} preview`}
-                aria-hidden={!ready || (introActive && !reduceMotion) || undefined}
-                className="group relative block overflow-hidden bg-neutral-100 focus-visible:z-20"
-                style={{ width: size.width, height: size.height }}
-                initial={false}
-                animate={cardAnimation}
-                transition={
-                  animateFromCenter
-                    ? {
-                        x: {
-                          delay: introDelay,
-                          duration: GRID_ACTIVE_INTRO_TRAVEL_SECONDS,
-                          ease: EASE_POWER2_IN_OUT,
-                        },
-                        y: {
-                          delay: introDelay,
-                          duration: GRID_ACTIVE_INTRO_TRAVEL_SECONDS,
-                          ease: EASE_POWER2_IN_OUT,
-                        },
-                        scale: {
-                          delay: introDelay,
-                          duration: GRID_ACTIVE_INTRO_SCALE_SECONDS,
-                          ease: EASE_POWER3_OUT,
-                        },
-                      }
-                    : { duration: 0 }
-                }
+                className="will-change-transform"
+                style={{
+                  transform: `translate3d(${position.x}px, ${position.y}px, 0)`,
+                }}
               >
-                <motion.span
-                  className="relative block h-full w-full"
-                  whileHover={{ scale: 1.015 }}
+                <motion.button
+                  ref={(element) => {
+                    cardRefs.current[slot] = element;
+                  }}
+                  data-intro-card="active"
+                  type="button"
+                  disabled={!ready || (introActive && !reduceMotion)}
+                  onClick={() => onOpenProject(project)}
+                  aria-label={`Open ${project.title} preview`}
+                  aria-hidden={!ready || (introActive && !reduceMotion) || undefined}
+                  className="group relative block overflow-hidden bg-neutral-100 focus-visible:z-20"
+                  style={{ width: size.width, height: size.height }}
+                  initial={false}
+                  animate={cardAnimation}
+                  onAnimationComplete={() => {
+                    if (!animateFromCenter) return;
+                    settledIntroSlotsRef.current.add(slot);
+                    cardRefs.current[slot]?.setAttribute(
+                      "data-intro-settled",
+                      "true",
+                    );
+                  }}
+                  transition={
+                    animateFromCenter
+                      ? {
+                          x: {
+                            delay: introDelay,
+                            duration: GRID_ACTIVE_INTRO_TRAVEL_SECONDS,
+                            ease: EASE_POWER2_IN_OUT,
+                          },
+                          y: {
+                            delay: introDelay,
+                            duration: GRID_ACTIVE_INTRO_TRAVEL_SECONDS,
+                            ease: EASE_POWER2_IN_OUT,
+                          },
+                          scale: {
+                            delay: introDelay,
+                            duration: GRID_ACTIVE_INTRO_SCALE_SECONDS,
+                            ease: EASE_POWER3_OUT,
+                          },
+                        }
+                      : { duration: 0 }
+                  }
                 >
-                  <ProjectMedia
-                    project={project}
-                    playVideo={ready && !introActive}
-                    eager
-                    sizes="(max-width: 767px) 68vw, 58vw"
-                    className="select-none object-cover"
-                  />
-                </motion.span>
-              </motion.button>
+                  <motion.span
+                    className="relative block h-full w-full"
+                    whileHover={{ scale: 1.015 }}
+                  >
+                    <ProjectMedia
+                      project={project}
+                      playVideo={ready && !reduceMotion}
+                      eager
+                      sizes="(max-width: 767px) 68vw, 58vw"
+                      className="select-none object-cover"
+                    />
+                  </motion.span>
+                </motion.button>
+              </div>
             </div>
           );
         })}

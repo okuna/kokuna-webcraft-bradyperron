@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { useEffect, useRef } from "react";
 import type { Project } from "@/lib/projects";
 
 export function ProjectMedia({
@@ -18,16 +19,30 @@ export function ProjectMedia({
   sizes?: string;
   className?: string;
 }) {
-  if (playVideo && project.previewVideoUrl) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    if (playVideo) {
+      void video.play().catch(() => undefined);
+    } else {
+      video.pause();
+    }
+  }, [playVideo, project.previewVideoUrl]);
+
+  if (project.previewVideoUrl) {
     return (
       <video
+        ref={videoRef}
         src={project.previewVideoUrl}
         poster={project.imageUrl}
-        autoPlay
+        autoPlay={playVideo}
         muted
         loop
         playsInline
-        preload="metadata"
+        preload={eager ? "auto" : "metadata"}
         aria-hidden={decorative || undefined}
         aria-label={decorative ? undefined : project.title}
         className={`absolute inset-0 h-full w-full ${className}`}
