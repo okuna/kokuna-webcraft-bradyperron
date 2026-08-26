@@ -19,13 +19,28 @@ async function openHome(page: Page) {
 }
 
 async function waitForGridIntro(page: Page) {
-  await expect(page.locator('[data-view="grid"]')).toBeVisible();
-  await page.waitForTimeout(3_300);
+  const grid = page.locator('[data-view="grid"]');
+  await expect(grid).toBeVisible();
+  await expect(grid).toHaveAttribute("data-intro-phase", "grid", {
+    timeout: 8_000,
+  });
 }
 
 async function inlineTransforms(locator: Locator) {
   return locator.evaluateAll((elements) =>
     elements.map((element) => (element as HTMLElement).style.transform),
+  );
+}
+
+async function elementCenters(locator: Locator) {
+  return locator.evaluateAll((elements) =>
+    elements.map((element) => {
+      const bounds = element.getBoundingClientRect();
+      return {
+        x: bounds.left + bounds.width / 2,
+        y: bounds.top + bounds.height / 2,
+      };
+    }),
   );
 }
 
@@ -44,22 +59,67 @@ async function dragSurface(page: Page, selector: string, deltaY: number) {
 }
 
 test.describe("bradyperron replication", () => {
-  test("loader completes and the desktop grid exposes four moving media cards", async ({
+  test("loader reveals a centered stack that disperses into the same moving grid cards", async ({
     page,
   }) => {
     await page.goto("/", { waitUntil: "commit" });
 
     const loader = page.locator(".loader");
+    const grid = page.locator('[data-view="grid"]');
     await expect(loader).toBeVisible();
     await expect(loader).toHaveRole("status");
     await expect(loader.getByText("bradyperron")).toBeVisible();
     await expect(loader.getByRole("progressbar")).toBeVisible();
+
+    await expect(grid).toHaveAttribute("data-intro-phase", "dispersing", {
+      timeout: 10_000,
+    });
+    const introCards = page.locator('[data-intro-card]');
+    const activeCards = page.locator('[data-intro-card="active"]:visible');
+    await expect(introCards).toHaveCount(16);
+    await expect(activeCards).toHaveCount(DESKTOP_CARD_COUNT);
+    await expect(activeCards.first()).toBeDisabled();
+
+    const stackedCenters = await elementCenters(introCards);
+    const stackedX = stackedCenters.map(({ x }) => x);
+    const stackedY = stackedCenters.map(({ y }) => y);
+    expect(Math.max(...stackedX) - Math.min(...stackedX)).toBeLessThan(260);
+    expect(Math.max(...stackedY) - Math.min(...stackedY)).toBeLessThan(260);
+
+    await activeCards.first().evaluate((element) => {
+      element.setAttribute("data-continuity-token", "opening-card");
+    });
     await expect(loader).toBeHidden({ timeout: 10_000 });
 
+    await page.waitForTimeout(900);
+    const dispersedCenters = await elementCenters(introCards);
+    const dispersedX = dispersedCenters.map(({ x }) => x);
+    const dispersedY = dispersedCenters.map(({ y }) => y);
+    expect(Math.max(...dispersedX) - Math.min(...dispersedX)).toBeGreaterThan(800);
+    expect(Math.max(...dispersedY) - Math.min(...dispersedY)).toBeGreaterThan(600);
+
     await waitForGridIntro(page);
+    await expect(page.locator('[data-intro-card="departing"]')).toHaveCount(0);
+    await expect(
+      page.locator('[data-continuity-token="opening-card"]'),
+    ).toHaveCount(1);
+
     const cards = page.locator(`${gridCardSelector}:visible`);
     await expect(cards).toHaveCount(DESKTOP_CARD_COUNT);
     await expect(cards.locator("img, video")).toHaveCount(DESKTOP_CARD_COUNT);
+
+    const destinations = await elementCenters(cards);
+    const viewport = page.viewportSize();
+    expect(viewport).not.toBeNull();
+    if (!viewport) return;
+    expect(destinations[0].x).toBeLessThan(viewport.width * 0.15);
+    expect(Math.abs(destinations[0].y - viewport.height / 2)).toBeLessThan(30);
+    expect(Math.abs(destinations[1].x - viewport.width / 2)).toBeLessThan(30);
+    expect(destinations[1].y).toBeGreaterThan(viewport.height * 0.65);
+    expect(destinations[2].x).toBeLessThan(viewport.width * 0.45);
+    expect(destinations[2].y).toBeLessThan(viewport.height * 0.4);
+    expect(destinations[3].x).toBeGreaterThan(viewport.width);
+    expect(destinations[3].y).toBeGreaterThan(viewport.height);
 
     const before = await inlineTransforms(cards);
     await page.waitForTimeout(300);

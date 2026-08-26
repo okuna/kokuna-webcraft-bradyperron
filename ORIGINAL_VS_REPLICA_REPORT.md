@@ -48,7 +48,7 @@ The original is a WebGL canvas built with Three.js/React Three Fiber and GSAP. T
 
 Consequences:
 
-- The original starts with up to 16 planes: four active desktop planes or three active mobile planes continue into their paths while up to 12 extras explode outward. The replica shows exactly the first 12 posters in a fixed on-screen collage, fades that layer, then reveals separate persistent cards.
+- The replica now matches the original entrance topology with four active desktop cards or three active mobile cards continuing from the centered stack into their exact paths while up to 12 temporary extras fan outward. The remaining difference is implementation and depth: DOM cards approximate the original WebGL planes rather than sharing its world-space camera and rendering pipeline.
 - The original begins randomized idle effects after approximately 12 seconds, then after roughly eight seconds of later inactivity. Its five desktop modes include trails, kaleidoscope, blur/flare, chromatic ripple, and liquid warp; mobile omits the blur mode. The replica has no idle post-processing.
 - The original grid-to-list transition shrinks grid geometry toward the center over about 550ms while the 3D ring fades in. The replica crossfades two separately mounted views over 650ms, so geometry and position do not carry across the mode change.
 - The original preserves the selected plane through project open and close. The replica creates a new media element inside an opaque dialog.

@@ -3,7 +3,7 @@
   "rubrics": [
     {
       "id": 1,
-      "criterion": "On first load, the white bradyperron loader reports real local-image preload progress, exits after the minimum intro delay, and reveals a twelve-image scatter animation before the persistent project grid settles in.",
+      "criterion": "On first load, the white bradyperron loader reports real local-image preload progress, then reveals a centered media stack whose temporary cards fan offscreen while the same persistent four desktop or three mobile cards disperse directly into their moving grid paths without a visual reset.",
       "type": "CUJ",
       "priority": "must-have"
     },

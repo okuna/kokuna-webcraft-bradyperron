@@ -51,7 +51,7 @@ Core experience:
 ### Motion Principles
 - Editorial, unhurried easing with smooth out curves for entrances and spatial movement
 - Loader respects a minimum visible duration of 1.35s in standard motion and about 150ms when reduced motion is preferred, then fades over 500ms
-- After loader, 12 poster frames expand from center into an irregular full-screen scatter, hold long enough to read as deliberate composition, then settle into a persistent moving grid after about 2.7s
+- As the loader fades, 16 poster frames on desktop or 15 on mobile expand from one centered stack. Twelve temporary frames fan radially offscreen while the same 4 desktop or 3 mobile cards travel to their exact grid-path positions; continuous grid motion begins after the 2.7s entrance window without a layer swap
 - About surface slides upward from below the viewport over 750ms
 - Continuous drift, rotation, hover enlargement, and ring parallax stop when reduced motion is preferred, with durations becoming effectively instant
 - Shared motion configuration respects the user's reduced-motion preference
@@ -123,7 +123,7 @@ When a local preview loop exists, the project shows a muted inline looping video
 ## 6. Product Surfaces
 
 #### 6.1 Loader and Entrance
-White fullscreen loader above all content. Displays the brand mark with upward text reveal and a black progress bar beneath that tracks real loading of the 17 poster frames and the portrait. Respects minimum visible duration and fade behavior defined in the design system. After loading, reveals the default view with 12 poster frames expanding from center into an irregular full-screen scatter that holds as deliberate composition, then settles into the persistent moving grid. Reduced-motion omits scatter movement and reveals a stable grid immediately.
+White fullscreen loader above all content. Displays the brand mark with upward text reveal and a black progress bar beneath that tracks real loading of the 17 poster frames and the portrait. Respects minimum visible duration and fade behavior defined in the design system. As the loader fades, the default view reveals a centered stack of 16 poster frames on desktop or 15 on mobile. Twelve temporary frames fan radially beyond the viewport while the persistent 4 desktop or 3 mobile cards move to their exact grid-path destinations. Those same card elements begin continuous grid motion after the entrance window, with no crossfade or position reset. Reduced-motion omits the stack and dispersal movement and reveals a stable grid immediately.
 
 #### 6.2 Bottom Controls
 Fixed footer landmark with brand mark as h1 at lower-left and view toggle list/grid plus about at lower-right. Brand does not navigate to a missing destination; it scrolls to top or is a no-op. Controls remain usable at all viewport sizes including 320px. Staggered upward fade reveals them while media entrance runs.
@@ -146,7 +146,7 @@ White viewport with header, main, and footer landmarks. Main carries skip destin
 ## 7. Acceptance Criteria
 
 - One public surface presents the entire portfolio; all project and about content opens inline via dialogs, with no internal dead ends or placeholder project destinations. Brand mark remains visible and does not navigate to a missing destination.
-- Loader reports real local-image loading progress for the 17 poster frames and the portrait, respects minimum intro visibility and fade timing defined in the design system, and shows a 12-image scatter before settling into the persistent grid; reduced-motion skips scatter and reveals a stable grid immediately.
+- Loader reports real local-image loading progress for the 17 poster frames and the portrait, respects minimum intro visibility and fade timing defined in the design system, and reveals a centered 16-card desktop or 15-card mobile stack whose persistent 4/3 cards disperse directly into their grid paths while 12 extras exit radially; reduced-motion skips the dispersal and reveals a stable grid immediately.
 - Grid continuously recycles 4 media cards on large viewports and 3 on small across varied paths; preview loops autoplay muted and inline when available; wheel and drag add momentum; keyboard focusable controls with accessible names that include the project title are present.
 - List control crossfades to a looping 17-title list with centered active title enlarged and widely tracked and progressive fade by distance; media ring is depth-scaled outward-facing arc only; wheel and drag move both; active preview loop plays when available.
 - All 17 projects are discoverable and open the corresponding fullscreen preview via grid card, list title, or ring image.

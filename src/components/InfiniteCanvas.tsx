@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import {
-  AnimatePresence,
   motion,
   useAnimationFrame,
   useReducedMotion,
@@ -12,7 +11,14 @@ import { PROJECTS, type Project } from "@/lib/projects";
 import { ProjectMedia } from "@/components/ProjectMedia";
 import {
   DESKTOP_ACTIVE_MEDIA,
+  EASE_IN,
+  EASE_IN_OUT,
   EASE_EXPO,
+  GRID_ACTIVE_INTRO_SCALE_SECONDS,
+  GRID_ACTIVE_INTRO_TRAVEL_SECONDS,
+  GRID_EXTRA_INTRO_SCALE_SECONDS,
+  GRID_EXTRA_INTRO_TRAVEL_SECONDS,
+  GRID_INTRO_DELAY_SECONDS,
   MOBILE_ACTIVE_MEDIA,
 } from "@/lib/motion";
 
@@ -21,22 +27,14 @@ const BASE_PROGRESS_PER_SECOND = 0.027;
 const VELOCITY_DECAY = 0.92;
 const VELOCITY_LERP = 0.28;
 const MAX_SCROLL_VELOCITY = 1.6;
-const INTRO_PROJECT_COUNT = 12;
-
-const INTRO_POSITIONS = [
-  [-0.34, -0.26, -2],
-  [0.04, -0.34, 1],
-  [0.29, -0.23, 0],
-  [-0.18, -0.1, 2],
-  [0.19, -0.06, -1],
-  [-0.39, 0.08, 1],
-  [-0.06, 0.11, 0],
-  [0.33, 0.13, 2],
-  [-0.27, 0.28, -1],
-  [0.08, 0.3, 1],
-  [0.38, 0.31, -2],
-  [-0.02, 0.43, 0],
-] as const;
+const INTRO_EXTRA_PROJECT_COUNT = 12;
+const INTRO_ACTIVE_STAGGER_SECONDS = 0.09;
+const INTRO_ACTIVE_STAGGER_LIMIT_SECONDS = 0.55;
+const INTRO_EXTRA_STAGGER_SECONDS = 0.022;
+const INTRO_EXTRA_STAGGER_LIMIT_SECONDS = 0.6;
+const INTRO_RADIAL_ANGLE_RADIANS = 2.3998;
+const INTRO_RADIAL_DISTANCE_MULTIPLIER = 1.45;
+const INTRO_START_SCALE = 0.001;
 
 type Viewport = { width: number; height: number };
 
@@ -76,31 +74,46 @@ function getPathPosition(
 ) {
   const rangeX = viewport.width / 2 + cardWidth * 1.1;
   const rangeY = viewport.height / 2 + cardHeight * 1.1;
-  const across = -rangeX + rangeX * 2 * progress;
-  const reverseAcross = rangeX - rangeX * 2 * progress;
-  const down = -rangeY + rangeY * 2 * progress;
-  const up = rangeY - rangeY * 2 * progress;
+  const leftToRight = -rangeX + rangeX * 2 * progress;
+  const rightToLeft = rangeX - rangeX * 2 * progress;
+  const topToBottom = -rangeY + rangeY * 2 * progress;
+  const bottomToTop = rangeY - rangeY * 2 * progress;
 
   switch (pathIndex % 9) {
     case 0:
-      return { x: across, y: 0 };
+      return { x: leftToRight, y: 0 };
     case 1:
-      return { x: 0, y: down };
+      return { x: 0, y: bottomToTop };
     case 2:
-      return { x: reverseAcross, y: down };
+      return { x: rightToLeft, y: bottomToTop };
     case 3:
-      return { x: across, y: up };
+      return { x: leftToRight, y: topToBottom };
     case 4:
-      return { x: across, y: rangeY * 0.2 };
+      return { x: leftToRight, y: -rangeY * 0.2 };
     case 5:
-      return { x: reverseAcross, y: up };
+      return { x: rightToLeft, y: topToBottom };
     case 6:
-      return { x: reverseAcross, y: 0 };
+      return { x: rightToLeft, y: 0 };
     case 7:
-      return { x: across, y: down };
+      return { x: leftToRight, y: bottomToTop };
     default:
-      return { x: 0, y: up };
+      return { x: 0, y: topToBottom };
   }
+}
+
+function getIntroExtraIndexes(activeCount: number) {
+  const remaining = PROJECTS.length - activeCount;
+  const count = Math.min(INTRO_EXTRA_PROJECT_COUNT, remaining);
+  if (count <= 0) return [];
+
+  const step = Math.max(1, Math.floor(remaining / count));
+  return Array.from({ length: count }, (_, index) => activeCount + index * step).filter(
+    (projectIndex) => projectIndex < PROJECTS.length,
+  );
+}
+
+function getCardRotation(progress: number, slot: number) {
+  return Math.sin((progress + slot * 0.17) * Math.PI * 2) * 1.8;
 }
 
 export function InfiniteCanvas({ ready, introActive, onOpenProject }: Props) {
@@ -127,6 +140,12 @@ export function InfiniteCanvas({ ready, introActive, onOpenProject }: Props) {
 
   const activeCount =
     viewport.width < MOBILE_BREAKPOINT ? MOBILE_ACTIVE_MEDIA : DESKTOP_ACTIVE_MEDIA;
+  const introExtraIndexes = useMemo(
+    () => getIntroExtraIndexes(activeCount),
+    [activeCount],
+  );
+  const introPhase =
+    !ready ? "loading" : introActive && !reduceMotion ? "dispersing" : "grid";
 
   useEffect(() => {
     if (previousActiveCountRef.current === activeCount) return;
@@ -232,83 +251,101 @@ export function InfiniteCanvas({ ready, introActive, onOpenProject }: Props) {
         cardSize.width,
         cardSize.height,
       );
-      const rotation = Math.sin((progress + slot * 0.17) * Math.PI * 2) * 1.8;
+      const rotation = getCardRotation(progress, slot);
       element.style.width = `${cardSize.width}px`;
       element.style.height = `${cardSize.height}px`;
-      element.style.transform = `translate3d(calc(-50% + ${position.x}px), calc(-50% + ${position.y}px), 0) rotate(${rotation}deg)`;
+      element.style.transform = `translate3d(${position.x}px, ${position.y}px, 0) rotate(${rotation}deg)`;
     }
   });
-
-  const introProjects = useMemo(
-    () => PROJECTS.slice(0, INTRO_PROJECT_COUNT),
-    [],
-  );
 
   return (
     <motion.div
       ref={containerRef}
       data-view="grid"
+      data-intro-phase={introPhase}
       className="canvas-surface fixed inset-0 z-0 overflow-hidden bg-white"
       onPan={(_, info) => nudgeVelocity(info.delta.y * -0.011)}
       aria-label="Moving project grid. Scroll or drag to move projects."
     >
-      <AnimatePresence>
-        {ready && introActive && !reduceMotion && (
-          <motion.div
-            key="intro"
-            className="pointer-events-none fixed inset-0 overflow-hidden"
-            initial={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.4 }}
-          >
-            {introProjects.map((project, index) => {
-              const [xFactor, yFactor, rotation] = INTRO_POSITIONS[index];
-              const size = getCardSize(project, viewport);
-              return (
-                <div
-                  key={project.id}
-                  className="absolute left-1/2 top-1/2"
-                  style={{ transform: "translate(-50%, -50%)", zIndex: index + 1 }}
-                >
-                  <motion.div
-                    className="relative overflow-hidden bg-neutral-100"
-                    style={{ width: size.width, height: size.height }}
-                    initial={{ x: 0, y: 0, rotate: 0, scale: 0.02, opacity: 0 }}
-                    animate={{
-                      x: viewport.width * xFactor,
-                      y: viewport.height * yFactor,
-                      rotate: rotation,
-                      scale: 1,
-                      opacity: 1,
-                    }}
-                    transition={{
-                      delay: 0.22 + Math.min(0.56, index * 0.04),
-                      duration: 1.15,
-                      ease: EASE_EXPO,
-                    }}
-                  >
-                    <Image
-                      src={project.imageUrl}
-                      alt=""
-                      fill
-                      unoptimized
-                      loading="eager"
-                      sizes="(max-width: 767px) 68vw, 58vw"
-                      className="object-cover"
-                    />
-                  </motion.div>
-                </div>
-              );
-            })}
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {(!ready || introActive) && !reduceMotion &&
+        introExtraIndexes.map((projectIndex) => {
+          const project = PROJECTS[projectIndex];
+          const size = getCardSize(project, viewport);
+          const angle = INTRO_RADIAL_ANGLE_RADIANS * projectIndex;
+          const radius =
+            INTRO_RADIAL_DISTANCE_MULTIPLIER *
+            Math.max(viewport.width, viewport.height);
+          const delay =
+            GRID_INTRO_DELAY_SECONDS +
+            Math.min(
+              INTRO_EXTRA_STAGGER_LIMIT_SECONDS,
+              INTRO_EXTRA_STAGGER_SECONDS * projectIndex,
+            );
 
-      <motion.div
+          return (
+            <div
+              key={`intro-extra-${project.id}`}
+              className="pointer-events-none absolute left-1/2 top-1/2"
+              style={{
+                transform: "translate(-50%, -50%)",
+                zIndex: projectIndex + 1,
+              }}
+              aria-hidden="true"
+            >
+              <motion.div
+                data-intro-card="departing"
+                className="relative overflow-hidden bg-neutral-100"
+                style={{ width: size.width, height: size.height }}
+                initial={false}
+                animate={
+                  ready
+                    ? {
+                        x: Math.cos(angle) * radius,
+                        y: -Math.sin(angle) * radius,
+                        scale: 1,
+                      }
+                    : { x: 0, y: 0, scale: INTRO_START_SCALE }
+                }
+                transition={
+                  ready
+                    ? {
+                        x: {
+                          delay,
+                          duration: GRID_EXTRA_INTRO_TRAVEL_SECONDS,
+                          ease: EASE_IN,
+                        },
+                        y: {
+                          delay,
+                          duration: GRID_EXTRA_INTRO_TRAVEL_SECONDS,
+                          ease: EASE_IN,
+                        },
+                        scale: {
+                          delay,
+                          duration: GRID_EXTRA_INTRO_SCALE_SECONDS,
+                          ease: EASE_EXPO,
+                        },
+                      }
+                    : { duration: 0 }
+                }
+              >
+                <Image
+                  src={project.imageUrl}
+                  alt=""
+                  fill
+                  unoptimized
+                  loading="eager"
+                  sizes="(max-width: 767px) 68vw, 58vw"
+                  className="object-cover"
+                  draggable={false}
+                />
+              </motion.div>
+            </div>
+          );
+        })}
+
+      <div
         className="absolute inset-0"
-        animate={{ opacity: ready && (!introActive || reduceMotion) ? 1 : 0 }}
-        transition={{ duration: 0.45 }}
-        aria-hidden={introActive && !reduceMotion}
+        inert={!ready || (introActive && !reduceMotion) ? true : undefined}
       >
         {cards.map((card, slot) => {
           const project = PROJECTS[card.projectIndex];
@@ -320,42 +357,85 @@ export function InfiniteCanvas({ ready, introActive, onOpenProject }: Props) {
             size.width,
             size.height,
           );
+          const introDelay =
+            GRID_INTRO_DELAY_SECONDS +
+            Math.min(
+              INTRO_ACTIVE_STAGGER_LIMIT_SECONDS,
+              INTRO_ACTIVE_STAGGER_SECONDS * card.projectIndex,
+            );
+          const animateFromCenter = ready && introActive && !reduceMotion;
+          const rotation = getCardRotation(card.entryProgress, slot);
+          const cardAnimation = ready
+            ? { x: position.x, y: position.y, rotate: rotation, scale: 1 }
+            : { x: 0, y: 0, rotate: 0, scale: INTRO_START_SCALE };
+
           return (
-            <button
-              key={`grid-slot-${slot}-${project.id}`}
-              ref={(element) => {
-                cardRefs.current[slot] = element;
-              }}
-              type="button"
-              onClick={() => onOpenProject(project)}
-              aria-label={`Open ${project.title} preview`}
-              className={`group absolute left-1/2 top-1/2 overflow-hidden bg-neutral-100 focus-visible:z-20 ${slot >= MOBILE_ACTIVE_MEDIA ? "hidden md:block" : ""}`}
+            <div
+              key={`grid-slot-${slot}`}
+              className={`absolute left-1/2 top-1/2 ${slot >= MOBILE_ACTIVE_MEDIA ? "hidden md:block" : ""}`}
               style={{
-                width: size.width,
-                height: size.height,
-                transform: `translate3d(calc(-50% + ${position.x}px), calc(-50% + ${position.y}px), 0)`,
+                transform: "translate(-50%, -50%)",
                 zIndex: slot + 1,
               }}
             >
-              <motion.span
-                className="relative block h-full w-full"
-                initial={{ scale: 0.92, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ duration: 0.8, ease: EASE_EXPO }}
-                whileHover={{ scale: 1.015 }}
+              <motion.button
+                ref={(element) => {
+                  cardRefs.current[slot] = element;
+                }}
+                data-intro-card="active"
+                type="button"
+                disabled={!ready || (introActive && !reduceMotion)}
+                onClick={() => onOpenProject(project)}
+                aria-label={`Open ${project.title} preview`}
+                aria-hidden={!ready || (introActive && !reduceMotion) || undefined}
+                className="group relative block overflow-hidden bg-neutral-100 focus-visible:z-20"
+                style={{ width: size.width, height: size.height }}
+                initial={false}
+                animate={cardAnimation}
+                transition={
+                  animateFromCenter
+                    ? {
+                        x: {
+                          delay: introDelay,
+                          duration: GRID_ACTIVE_INTRO_TRAVEL_SECONDS,
+                          ease: EASE_IN_OUT,
+                        },
+                        y: {
+                          delay: introDelay,
+                          duration: GRID_ACTIVE_INTRO_TRAVEL_SECONDS,
+                          ease: EASE_IN_OUT,
+                        },
+                        rotate: {
+                          delay: introDelay,
+                          duration: GRID_ACTIVE_INTRO_TRAVEL_SECONDS,
+                          ease: EASE_IN_OUT,
+                        },
+                        scale: {
+                          delay: introDelay,
+                          duration: GRID_ACTIVE_INTRO_SCALE_SECONDS,
+                          ease: EASE_EXPO,
+                        },
+                      }
+                    : { duration: 0 }
+                }
               >
-                <ProjectMedia
-                  project={project}
-                  playVideo
-                  eager
-                  sizes="(max-width: 767px) 68vw, 58vw"
-                  className="select-none object-cover"
-                />
-              </motion.span>
-            </button>
+                <motion.span
+                  className="relative block h-full w-full"
+                  whileHover={{ scale: 1.015 }}
+                >
+                  <ProjectMedia
+                    project={project}
+                    playVideo={ready && !introActive}
+                    eager
+                    sizes="(max-width: 767px) 68vw, 58vw"
+                    className="select-none object-cover"
+                  />
+                </motion.span>
+              </motion.button>
+            </div>
           );
         })}
-      </motion.div>
+      </div>
     </motion.div>
   );
 }

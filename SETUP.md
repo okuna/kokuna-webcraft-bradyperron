@@ -140,4 +140,4 @@ Both are declared for `/` in `site.toml`.
 
 **Walkthrough:** https://www.internalfb.com/intern/px/p/cvjCL
 
-- Narrated walkthrough of loader real-preload progress, 12-image scatter intro, grid 4/3 recycling with preview loops + wheel/drag, list looping titles + media ring, project preview dialog a11y (focus trap/restore/Escape/inert), about panel slide-up + staggered biography + portrait drift, responsive 320px, reduced-motion, local-only assets, Vercel deployment in AAI -Web Craft team.
+- Narrated walkthrough of loader real-preload progress, centered stack-to-grid dispersal, grid 4/3 recycling with preview loops + wheel/drag, list looping titles + media ring, project preview dialog a11y (focus trap/restore/Escape/inert), about panel slide-up + staggered biography + portrait drift, responsive 320px, reduced-motion, local-only assets, Vercel deployment in AAI -Web Craft team.

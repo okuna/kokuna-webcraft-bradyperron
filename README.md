@@ -14,7 +14,7 @@ A single-page Web Craft 1.0 portfolio for filmmaker Brady Perron. Sparse, image-
 ## Experience
 
 - A white `bradyperron` loader tracks the preload state of all 17 project frames and the portrait.
-- The default grid begins with a twelve-image scatter, then keeps four media cards moving on desktop and three on mobile. Four projects use local muted video loops; the others use local poster frames. Wheel and drag input add momentum to the continuous motion.
+- The default grid begins as a centered stack of 16 media cards on desktop or 15 on mobile. Twelve temporary cards fan offscreen while the same four desktop or three mobile cards land directly on their continuous-motion paths. Four projects use local muted video loops; the others use local poster frames. Wheel and drag input add momentum to the continuous motion.
 - The fixed `list` control switches to a looping vertical title list coupled to a depth-scaled ring of project media.
 - Every project image or title opens a fullscreen inline preview on `/`; there are no placeholder project routes.
 - Project previews contain the poster, project metadata, a smooth-scroll `more info` action, and an external YouTube or Vimeo link when one is available.
