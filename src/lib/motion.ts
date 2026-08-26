@@ -1,7 +1,13 @@
 export const EASE_OUT = [0.22, 0.61, 0.36, 1] as const;
 export const EASE_EXPO = [0.16, 1, 0.3, 1] as const;
-export const EASE_IN = [0.32, 0, 0.67, 0] as const;
-export const EASE_IN_OUT = [0.65, 0, 0.35, 1] as const;
+export const EASE_POWER2_IN_OUT = (progress: number) =>
+  progress < 0.5
+    ? 4 * progress ** 3
+    : 1 - (-2 * progress + 2) ** 3 / 2;
+export const EASE_POWER3_IN = (progress: number) => progress ** 4;
+export const EASE_POWER3_OUT = (progress: number) => 1 - (1 - progress) ** 4;
+export const EASE_EXPO_OUT = (progress: number) =>
+  progress === 1 ? 1 : 1 - 2 ** (-10 * progress);
 
 export const LOADER_MINIMUM_MS = 1350;
 export const LOADER_EXIT_SECONDS = 0.5;

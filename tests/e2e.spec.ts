@@ -44,6 +44,20 @@ async function elementCenters(locator: Locator) {
   );
 }
 
+function coordinateSpan(points: Array<{ x: number; y: number }>, axis: "x" | "y") {
+  const values = points.map((point) => point[axis]);
+  return Math.max(...values) - Math.min(...values);
+}
+
+async function elementSizes(locator: Locator) {
+  return locator.evaluateAll((elements) =>
+    elements.map((element) => {
+      const bounds = element.getBoundingClientRect();
+      return { width: bounds.width, height: bounds.height };
+    }),
+  );
+}
+
 async function dragSurface(page: Page, selector: string, deltaY: number) {
   const surface = page.locator(selector);
   const box = await surface.boundingBox();
@@ -80,23 +94,19 @@ test.describe("bradyperron replication", () => {
     await expect(activeCards).toHaveCount(DESKTOP_CARD_COUNT);
     await expect(activeCards.first()).toBeDisabled();
 
-    const stackedCenters = await elementCenters(introCards);
-    const stackedX = stackedCenters.map(({ x }) => x);
-    const stackedY = stackedCenters.map(({ y }) => y);
-    expect(Math.max(...stackedX) - Math.min(...stackedX)).toBeLessThan(260);
-    expect(Math.max(...stackedY) - Math.min(...stackedY)).toBeLessThan(260);
-
     await activeCards.first().evaluate((element) => {
       element.setAttribute("data-continuity-token", "opening-card");
     });
     await expect(loader).toBeHidden({ timeout: 10_000 });
 
+    const revealCenters = await elementCenters(introCards);
+    expect(coordinateSpan(revealCenters, "x")).toBeLessThan(300);
+    expect(coordinateSpan(revealCenters, "y")).toBeLessThan(150);
+
     await page.waitForTimeout(900);
     const dispersedCenters = await elementCenters(introCards);
-    const dispersedX = dispersedCenters.map(({ x }) => x);
-    const dispersedY = dispersedCenters.map(({ y }) => y);
-    expect(Math.max(...dispersedX) - Math.min(...dispersedX)).toBeGreaterThan(800);
-    expect(Math.max(...dispersedY) - Math.min(...dispersedY)).toBeGreaterThan(600);
+    expect(coordinateSpan(dispersedCenters, "x")).toBeGreaterThan(1_200);
+    expect(coordinateSpan(dispersedCenters, "y")).toBeGreaterThan(900);
 
     await waitForGridIntro(page);
     await expect(page.locator('[data-intro-card="departing"]')).toHaveCount(0);
@@ -107,6 +117,22 @@ test.describe("bradyperron replication", () => {
     const cards = page.locator(`${gridCardSelector}:visible`);
     await expect(cards).toHaveCount(DESKTOP_CARD_COUNT);
     await expect(cards.locator("img, video")).toHaveCount(DESKTOP_CARD_COUNT);
+
+    const sizes = await elementSizes(cards);
+    expect(sizes[0].width).toBeGreaterThan(345);
+    expect(sizes[0].width).toBeLessThan(365);
+    expect(sizes[0].height).toBeGreaterThan(345);
+    expect(sizes[0].height).toBeLessThan(365);
+    expect(sizes[1].width).toBeGreaterThan(345);
+    expect(sizes[1].height).toBeGreaterThan(430);
+    expect(sizes[1].height).toBeLessThan(455);
+    expect(sizes[2].width).toBeGreaterThan(345);
+    expect(sizes[2].height).toBeGreaterThan(430);
+    expect(sizes[2].height).toBeLessThan(455);
+    expect(sizes[3].width).toBeGreaterThan(615);
+    expect(sizes[3].width).toBeLessThan(650);
+    expect(sizes[3].height).toBeGreaterThan(345);
+    expect(sizes[3].height).toBeLessThan(365);
 
     const destinations = await elementCenters(cards);
     const viewport = page.viewportSize();

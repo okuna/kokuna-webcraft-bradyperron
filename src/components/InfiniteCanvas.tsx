@@ -11,9 +11,10 @@ import { PROJECTS, type Project } from "@/lib/projects";
 import { ProjectMedia } from "@/components/ProjectMedia";
 import {
   DESKTOP_ACTIVE_MEDIA,
-  EASE_IN,
-  EASE_IN_OUT,
-  EASE_EXPO,
+  EASE_EXPO_OUT,
+  EASE_POWER2_IN_OUT,
+  EASE_POWER3_IN,
+  EASE_POWER3_OUT,
   GRID_ACTIVE_INTRO_SCALE_SECONDS,
   GRID_ACTIVE_INTRO_TRAVEL_SECONDS,
   GRID_EXTRA_INTRO_SCALE_SECONDS,
@@ -35,6 +36,11 @@ const INTRO_EXTRA_STAGGER_LIMIT_SECONDS = 0.6;
 const INTRO_RADIAL_ANGLE_RADIANS = 2.3998;
 const INTRO_RADIAL_DISTANCE_MULTIPLIER = 1.45;
 const INTRO_START_SCALE = 0.001;
+const CAMERA_DISTANCE = 12;
+const PATH_REFERENCE_DISTANCE = 8;
+const CAMERA_FIELD_OF_VIEW_DEGREES = 50;
+const DESKTOP_CARD_SHORT_SIDE_WORLD = 5.5;
+const MOBILE_CARD_SHORT_SIDE_WORLD = 3.5;
 
 type Viewport = { width: number; height: number };
 
@@ -56,13 +62,18 @@ function getDistributedProgress(index: number, count: number) {
 function getCardSize(project: Project, viewport: Viewport) {
   const isSmall = viewport.width < MOBILE_BREAKPOINT;
   const aspect = project.width / project.height;
-  const targetHeight = Math.min(
-    viewport.height * (isSmall ? 0.4 : 0.49),
-    isSmall ? 340 : 460,
-  );
-  const maximumWidth = viewport.width * (isSmall ? 0.68 : 0.58);
-  const width = Math.min(targetHeight * aspect, maximumWidth);
-  return { width, height: width / aspect };
+  const visibleWorldHeight =
+    2 *
+    Math.tan((CAMERA_FIELD_OF_VIEW_DEGREES * Math.PI) / 360) *
+    CAMERA_DISTANCE;
+  const pixelsPerWorldUnit = viewport.height / visibleWorldHeight;
+  const shortSide =
+    (isSmall ? MOBILE_CARD_SHORT_SIDE_WORLD : DESKTOP_CARD_SHORT_SIDE_WORLD) *
+    pixelsPerWorldUnit;
+
+  return aspect >= 1
+    ? { width: shortSide * aspect, height: shortSide }
+    : { width: shortSide, height: shortSide / aspect };
 }
 
 function getPathPosition(
@@ -72,8 +83,9 @@ function getPathPosition(
   cardWidth: number,
   cardHeight: number,
 ) {
-  const rangeX = viewport.width / 2 + cardWidth * 1.1;
-  const rangeY = viewport.height / 2 + cardHeight * 1.1;
+  const pathViewportScale = PATH_REFERENCE_DISTANCE / CAMERA_DISTANCE;
+  const rangeX = viewport.width * pathViewportScale + cardWidth * 1.1;
+  const rangeY = viewport.height * pathViewportScale + cardHeight * 1.1;
   const leftToRight = -rangeX + rangeX * 2 * progress;
   const rightToLeft = rangeX - rangeX * 2 * progress;
   const topToBottom = -rangeY + rangeY * 2 * progress;
@@ -110,10 +122,6 @@ function getIntroExtraIndexes(activeCount: number) {
   return Array.from({ length: count }, (_, index) => activeCount + index * step).filter(
     (projectIndex) => projectIndex < PROJECTS.length,
   );
-}
-
-function getCardRotation(progress: number, slot: number) {
-  return Math.sin((progress + slot * 0.17) * Math.PI * 2) * 1.8;
 }
 
 export function InfiniteCanvas({ ready, introActive, onOpenProject }: Props) {
@@ -251,10 +259,9 @@ export function InfiniteCanvas({ ready, introActive, onOpenProject }: Props) {
         cardSize.width,
         cardSize.height,
       );
-      const rotation = getCardRotation(progress, slot);
       element.style.width = `${cardSize.width}px`;
       element.style.height = `${cardSize.height}px`;
-      element.style.transform = `translate3d(${position.x}px, ${position.y}px, 0) rotate(${rotation}deg)`;
+      element.style.transform = `translate3d(${position.x}px, ${position.y}px, 0)`;
     }
   });
 
@@ -274,6 +281,7 @@ export function InfiniteCanvas({ ready, introActive, onOpenProject }: Props) {
           const angle = INTRO_RADIAL_ANGLE_RADIANS * projectIndex;
           const radius =
             INTRO_RADIAL_DISTANCE_MULTIPLIER *
+            (PATH_REFERENCE_DISTANCE / CAMERA_DISTANCE) *
             Math.max(viewport.width, viewport.height);
           const delay =
             GRID_INTRO_DELAY_SECONDS +
@@ -312,17 +320,17 @@ export function InfiniteCanvas({ ready, introActive, onOpenProject }: Props) {
                         x: {
                           delay,
                           duration: GRID_EXTRA_INTRO_TRAVEL_SECONDS,
-                          ease: EASE_IN,
+                          ease: EASE_POWER3_IN,
                         },
                         y: {
                           delay,
                           duration: GRID_EXTRA_INTRO_TRAVEL_SECONDS,
-                          ease: EASE_IN,
+                          ease: EASE_POWER3_IN,
                         },
                         scale: {
                           delay,
                           duration: GRID_EXTRA_INTRO_SCALE_SECONDS,
-                          ease: EASE_EXPO,
+                          ease: EASE_EXPO_OUT,
                         },
                       }
                     : { duration: 0 }
@@ -364,10 +372,9 @@ export function InfiniteCanvas({ ready, introActive, onOpenProject }: Props) {
               INTRO_ACTIVE_STAGGER_SECONDS * card.projectIndex,
             );
           const animateFromCenter = ready && introActive && !reduceMotion;
-          const rotation = getCardRotation(card.entryProgress, slot);
           const cardAnimation = ready
-            ? { x: position.x, y: position.y, rotate: rotation, scale: 1 }
-            : { x: 0, y: 0, rotate: 0, scale: INTRO_START_SCALE };
+            ? { x: position.x, y: position.y, scale: 1 }
+            : { x: 0, y: 0, scale: INTRO_START_SCALE };
 
           return (
             <div
@@ -398,22 +405,17 @@ export function InfiniteCanvas({ ready, introActive, onOpenProject }: Props) {
                         x: {
                           delay: introDelay,
                           duration: GRID_ACTIVE_INTRO_TRAVEL_SECONDS,
-                          ease: EASE_IN_OUT,
+                          ease: EASE_POWER2_IN_OUT,
                         },
                         y: {
                           delay: introDelay,
                           duration: GRID_ACTIVE_INTRO_TRAVEL_SECONDS,
-                          ease: EASE_IN_OUT,
-                        },
-                        rotate: {
-                          delay: introDelay,
-                          duration: GRID_ACTIVE_INTRO_TRAVEL_SECONDS,
-                          ease: EASE_IN_OUT,
+                          ease: EASE_POWER2_IN_OUT,
                         },
                         scale: {
                           delay: introDelay,
                           duration: GRID_ACTIVE_INTRO_SCALE_SECONDS,
-                          ease: EASE_EXPO,
+                          ease: EASE_POWER3_OUT,
                         },
                       }
                     : { duration: 0 }
