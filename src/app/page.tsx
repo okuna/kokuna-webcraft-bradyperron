@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, MotionConfig } from "framer-motion";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { AboutModal } from "@/components/AboutModal";
 import { BottomBar, type ViewMode } from "@/components/BottomBar";
 import { InfiniteCanvas } from "@/components/InfiniteCanvas";
@@ -18,10 +18,38 @@ export default function HomePage() {
   const [aboutOpen, setAboutOpen] = useState(false);
   const [previewProject, setPreviewProject] = useState<Project | null>(null);
   const modalOpen = aboutOpen || Boolean(previewProject);
+  const isInteractive = loaderDone && introComplete && !modalOpen;
+
+  const lastFocusRef = useRef<HTMLElement | null>(null);
 
   const finishLoading = useCallback(() => setLoaderDone(true), []);
-  const closeAbout = useCallback(() => setAboutOpen(false), []);
-  const closePreview = useCallback(() => setPreviewProject(null), []);
+  const closeAbout = useCallback(() => {
+    setAboutOpen(false);
+    // ponytail: restore focus after inert removal, with retry for disabled state
+    setTimeout(() => {
+      lastFocusRef.current?.removeAttribute("disabled");
+      if (lastFocusRef.current) lastFocusRef.current.tabIndex = 0;
+      lastFocusRef.current?.focus();
+    }, 160);
+  }, []);
+  const closePreview = useCallback(() => {
+    setPreviewProject(null);
+    setTimeout(() => {
+      lastFocusRef.current?.removeAttribute("disabled");
+      if (lastFocusRef.current) lastFocusRef.current.tabIndex = 0;
+      lastFocusRef.current?.focus();
+    }, 160);
+  }, []);
+
+  const openAbout = useCallback(() => {
+    lastFocusRef.current = document.activeElement as HTMLElement | null;
+    setAboutOpen(true);
+  }, []);
+
+  const openProject = useCallback((project: Project) => {
+    lastFocusRef.current = document.activeElement as HTMLElement | null;
+    setPreviewProject(project);
+  }, []);
 
   useEffect(() => {
     if (!loaderDone) return;
@@ -36,7 +64,10 @@ export default function HomePage() {
     <MotionConfig reducedMotion="user">
       <Loader onComplete={finishLoading} />
 
-      <div inert={modalOpen ? true : undefined} aria-hidden={modalOpen || undefined}>
+      <div
+        inert={!isInteractive ? true : undefined}
+        aria-hidden={modalOpen ? true : undefined}
+      >
         <a
           href="#main-content"
           className="sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[70] focus:not-sr-only focus:bg-white focus:px-4 focus:py-3 focus:text-black"
@@ -51,10 +82,10 @@ export default function HomePage() {
                 key="grid"
                 ready={loaderDone}
                 introActive={loaderDone && !introComplete}
-                onOpenProject={setPreviewProject}
+                onOpenProject={openProject}
               />
             ) : (
-              <ListView key="list" onOpenProject={setPreviewProject} />
+              <ListView key="list" onOpenProject={openProject} ready={loaderDone} />
             )}
           </AnimatePresence>
         </main>
@@ -65,7 +96,8 @@ export default function HomePage() {
           onToggleView={() =>
             setViewMode((current) => (current === "grid" ? "list" : "grid"))
           }
-          onOpenAbout={() => setAboutOpen(true)}
+          onOpenAbout={openAbout}
+          disabled={!isInteractive}
         />
       </div>
 

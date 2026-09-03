@@ -82,24 +82,27 @@ export function Loader({ onComplete }: { onComplete: () => void }) {
               <motion.div
                 initial={{ y: "100%", opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
-                transition={{ duration: 1, ease: EASE_EXPO }}
+                exit={{ y: "-100%", opacity: 0 }}
+                transition={{ duration: 0.58, ease: EASE_EXPO }}
                 className="font-display text-3xl leading-none text-black md:text-5xl"
               >
                 bradyperron
               </motion.div>
             </div>
-            <div
+            <motion.div
               className="h-1 w-full bg-black/10"
               role="progressbar"
               aria-valuemin={0}
               aria-valuemax={100}
               aria-valuenow={progress}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.32 }}
             >
               <div
                 className="h-full bg-black transition-[width] duration-300 ease-out"
                 style={{ width: `${progress}%` }}
               />
-            </div>
+            </motion.div>
           </div>
         </motion.div>
       )}

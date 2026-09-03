@@ -117,7 +117,8 @@ export function AboutModal({
                 initial={{ clipPath: "inset(0 0 100% 0)" }}
                 animate={{ clipPath: "inset(0 0 0% 0)" }}
                 transition={{ duration: 0.95, delay: 0.3, ease: EASE_EXPO }}
-                className="relative order-last aspect-[4/5] w-2/3 overflow-hidden bg-black/[0.04] md:order-none md:col-span-4 md:col-start-9 md:row-start-2 md:w-full md:self-start"
+                className="relative order-last w-2/3 overflow-hidden bg-black/[0.04] md:order-none md:col-span-4 md:col-start-9 md:row-start-2 md:w-full md:self-start"
+                style={{ aspectRatio: `${SETTINGS.portrait.width} / ${SETTINGS.portrait.height}` }}
               >
                 <motion.div
                   className="absolute -inset-[5%]"
@@ -132,7 +133,8 @@ export function AboutModal({
                   <Image
                     src={SETTINGS.portrait.url}
                     alt={SETTINGS.portrait.alt}
-                    fill
+                    width={SETTINGS.portrait.width}
+                    height={SETTINGS.portrait.height}
                     unoptimized
                     sizes="(max-width: 767px) 67vw, 34vw"
                     className="object-cover"
@@ -172,7 +174,7 @@ export function AboutModal({
                   </a>
                 </nav>
                 <p className="mt-6 text-[11px] tracking-[0.3em] text-black/45 md:mt-8 md:text-xs">
-                  Videographer / Editor / Director
+                  {SETTINGS.description.replace(/\//g, " / ")}
                 </p>
               </motion.div>
             </div>

@@ -1,11 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import {
-  motion,
-  useAnimationFrame,
-  useReducedMotion,
-} from "framer-motion";
+import { motion, useAnimationFrame, useReducedMotion } from "framer-motion";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { PROJECTS, type Project } from "@/lib/projects";
 import { ProjectMedia } from "@/components/ProjectMedia";
@@ -29,13 +25,13 @@ const VELOCITY_DECAY = 0.92;
 const VELOCITY_LERP = 0.28;
 const MAX_SCROLL_VELOCITY = 1.6;
 const INTRO_EXTRA_PROJECT_COUNT = 12;
-const INTRO_ACTIVE_STAGGER_SECONDS = 0.09;
-const INTRO_ACTIVE_STAGGER_LIMIT_SECONDS = 0.55;
-const INTRO_EXTRA_STAGGER_SECONDS = 0.022;
-const INTRO_EXTRA_STAGGER_LIMIT_SECONDS = 0.6;
-const INTRO_RADIAL_ANGLE_RADIANS = 2.3998;
-const INTRO_RADIAL_DISTANCE_MULTIPLIER = 1.45;
-const INTRO_START_SCALE = 0.001;
+const INTRO_ACTIVE_STAGGER_SECONDS = 0.052;
+const INTRO_ACTIVE_STAGGER_LIMIT_SECONDS = 0.32;
+const INTRO_EXTRA_STAGGER_SECONDS = 0.016;
+const INTRO_EXTRA_STAGGER_LIMIT_SECONDS = 0.38;
+const INTRO_RADIAL_ANGLE_RADIANS = 2.18;
+const INTRO_RADIAL_DISTANCE_MULTIPLIER = 1.28;
+const INTRO_START_SCALE = 0.12;
 const CAMERA_DISTANCE = 12;
 const PATH_REFERENCE_DISTANCE = 8;
 const CAMERA_FIELD_OF_VIEW_DEGREES = 50;
@@ -63,26 +59,17 @@ function getCardSize(project: Project, viewport: Viewport) {
   const isSmall = viewport.width < MOBILE_BREAKPOINT;
   const aspect = project.width / project.height;
   const visibleWorldHeight =
-    2 *
-    Math.tan((CAMERA_FIELD_OF_VIEW_DEGREES * Math.PI) / 360) *
-    CAMERA_DISTANCE;
+    2 * Math.tan((CAMERA_FIELD_OF_VIEW_DEGREES * Math.PI) / 360) * CAMERA_DISTANCE;
   const pixelsPerWorldUnit = viewport.height / visibleWorldHeight;
   const shortSide =
-    (isSmall ? MOBILE_CARD_SHORT_SIDE_WORLD : DESKTOP_CARD_SHORT_SIDE_WORLD) *
-    pixelsPerWorldUnit;
+    (isSmall ? MOBILE_CARD_SHORT_SIDE_WORLD : DESKTOP_CARD_SHORT_SIDE_WORLD) * pixelsPerWorldUnit;
 
   return aspect >= 1
     ? { width: shortSide * aspect, height: shortSide }
     : { width: shortSide, height: shortSide / aspect };
 }
 
-function getPathPosition(
-  pathIndex: number,
-  progress: number,
-  viewport: Viewport,
-  cardWidth: number,
-  cardHeight: number,
-) {
+function getPathPosition(pathIndex: number, progress: number, viewport: Viewport, cardWidth: number, cardHeight: number) {
   const pathViewportScale = PATH_REFERENCE_DISTANCE / CAMERA_DISTANCE;
   const rangeX = viewport.width * pathViewportScale + cardWidth * 1.1;
   const rangeY = viewport.height * pathViewportScale + cardHeight * 1.1;
@@ -147,15 +134,10 @@ export function InfiniteCanvas({ ready, introActive, onOpenProject }: Props) {
   const nextProjectRef = useRef(DESKTOP_ACTIVE_MEDIA);
   const previousActiveCountRef = useRef(DESKTOP_ACTIVE_MEDIA);
   const reduceMotion = useReducedMotion();
+  const activeCount = viewport.width < MOBILE_BREAKPOINT ? MOBILE_ACTIVE_MEDIA : DESKTOP_ACTIVE_MEDIA;
 
-  const activeCount =
-    viewport.width < MOBILE_BREAKPOINT ? MOBILE_ACTIVE_MEDIA : DESKTOP_ACTIVE_MEDIA;
-  const introExtraIndexes = useMemo(
-    () => getIntroExtraIndexes(activeCount),
-    [activeCount],
-  );
-  const introPhase =
-    !ready ? "loading" : introActive && !reduceMotion ? "dispersing" : "grid";
+  const introExtraIndexes = useMemo(() => getIntroExtraIndexes(activeCount), [activeCount]);
+  const introPhase = !ready ? "loading" : introActive && !reduceMotion ? "dispersing" : "grid";
 
   useEffect(() => {
     if (previousActiveCountRef.current === activeCount) return;
@@ -179,8 +161,7 @@ export function InfiniteCanvas({ ready, introActive, onOpenProject }: Props) {
   }, [activeCount]);
 
   useEffect(() => {
-    const updateViewport = () =>
-      setViewport({ width: window.innerWidth, height: window.innerHeight });
+    const updateViewport = () => setViewport({ width: window.innerWidth, height: window.innerHeight });
     updateViewport();
     window.addEventListener("resize", updateViewport);
     return () => window.removeEventListener("resize", updateViewport);
@@ -202,6 +183,7 @@ export function InfiniteCanvas({ ready, introActive, onOpenProject }: Props) {
   }, []);
 
   useEffect(() => {
+    if (reduceMotion) return;
     const handleWheel = (event: WheelEvent) => {
       if ((event.target as Element | null)?.closest("[data-modal-scroll]")) return;
       event.preventDefault();
@@ -209,13 +191,12 @@ export function InfiniteCanvas({ ready, introActive, onOpenProject }: Props) {
     };
     window.addEventListener("wheel", handleWheel, { passive: false });
     return () => window.removeEventListener("wheel", handleWheel);
-  }, [nudgeVelocity]);
+  }, [nudgeVelocity, reduceMotion]);
 
   useAnimationFrame((_, delta) => {
     if (!ready || reduceMotion) return;
     const seconds = Math.min(delta, 50) / 1000;
-    velocityRef.current +=
-      (targetVelocityRef.current - velocityRef.current) * VELOCITY_LERP;
+    velocityRef.current += (targetVelocityRef.current - velocityRef.current) * VELOCITY_LERP;
     targetVelocityRef.current *= VELOCITY_DECAY;
     if (Math.abs(targetVelocityRef.current) < 0.0005) targetVelocityRef.current = 0;
 
@@ -234,22 +215,16 @@ export function InfiniteCanvas({ ready, introActive, onOpenProject }: Props) {
         nextProjectRef.current += 1;
         setCards((current) =>
           current.map((card, index) =>
-            index === slot
-              ? { projectIndex: nextIndex, entryProgress: progress }
-              : card,
+            index === slot ? { projectIndex: nextIndex, entryProgress: progress } : card,
           ),
         );
         cardsRef.current[slot] = { projectIndex: nextIndex, entryProgress: progress };
       } else if (progress < 0) {
         progress += 1;
-        const previous =
-          (cardsRef.current[slot].projectIndex - activeCount + PROJECTS.length) %
-          PROJECTS.length;
+        const previous = (cardsRef.current[slot].projectIndex - activeCount + PROJECTS.length) % PROJECTS.length;
         setCards((current) =>
           current.map((card, index) =>
-            index === slot
-              ? { projectIndex: previous, entryProgress: progress }
-              : card,
+            index === slot ? { projectIndex: previous, entryProgress: progress } : card,
           ),
         );
         cardsRef.current[slot] = { projectIndex: previous, entryProgress: progress };
@@ -261,18 +236,108 @@ export function InfiniteCanvas({ ready, introActive, onOpenProject }: Props) {
       const project = PROJECTS[cardsRef.current[slot].projectIndex];
       if (!pathElement || !cardElement || !project) continue;
       const cardSize = getCardSize(project, viewport);
-      const position = getPathPosition(
-        cardsRef.current[slot].projectIndex,
-        progress,
-        viewport,
-        cardSize.width,
-        cardSize.height,
-      );
+      const position = getPathPosition(cardsRef.current[slot].projectIndex, progress, viewport, cardSize.width, cardSize.height);
       cardElement.style.width = `${cardSize.width}px`;
       cardElement.style.height = `${cardSize.height}px`;
       pathElement.style.transform = `translate3d(${position.x}px, ${position.y}px, 0)`;
     }
   });
+
+  // Reduced-motion static fallback: discrete navigation, no continuous motion
+  if (reduceMotion) {
+    if (!ready) {
+      return (
+        <div
+          ref={containerRef}
+          data-view="grid"
+          data-intro-phase="loading"
+          className="fixed inset-0 z-0 overflow-hidden bg-white"
+          aria-label="Moving project grid. Static view for reduced motion."
+        />
+      );
+    }
+    return (
+      <div
+        ref={containerRef}
+        data-view="grid"
+        data-intro-phase="grid"
+        className="fixed inset-0 z-0 overflow-hidden bg-white"
+        aria-label={`Project grid static view for reduced motion showing ${activeCount} projects`}
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+            e.preventDefault();
+            const next = nextProjectRef.current % PROJECTS.length;
+            nextProjectRef.current += 1;
+            setCards((curr) => curr.map((c, i) => (i === 0 ? { projectIndex: next, entryProgress: getDistributedProgress(i, activeCount) } : c)));
+            cardsRef.current[0] = { projectIndex: next, entryProgress: getDistributedProgress(0, activeCount) };
+          }
+          if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+            e.preventDefault();
+            const prev = (cardsRef.current[0].projectIndex - 1 + PROJECTS.length) % PROJECTS.length;
+            setCards((curr) => curr.map((c, i) => (i === 0 ? { projectIndex: prev, entryProgress: getDistributedProgress(i, activeCount) } : c)));
+            cardsRef.current[0] = { projectIndex: prev, entryProgress: getDistributedProgress(0, activeCount) };
+          }
+        }}
+      >
+        <div className="absolute inset-0">
+          {cards.slice(0, activeCount).map((card, slot) => {
+            const project = PROJECTS[card.projectIndex];
+            const size = getCardSize(project, viewport);
+            const position = getPathPosition(card.projectIndex, card.entryProgress, viewport, size.width, size.height);
+            return (
+              <div
+                key={`grid-static-${slot}-${project.id}`}
+                className={`absolute left-1/2 top-1/2 ${slot >= MOBILE_ACTIVE_MEDIA ? "hidden md:block" : ""}`}
+                style={{ transform: "translate(-50%, -50%)", zIndex: slot + 1 }}
+              >
+                <div className="will-change-transform" style={{ transform: `translate3d(${position.x}px, ${position.y}px, 0)` }}>
+                  <button
+                    type="button"
+                    onClick={() => onOpenProject(project)}
+                    aria-label={`Open ${project.title} preview`}
+                    data-intro-card="active"
+                    data-slug={project.slug}
+                    className="group relative block overflow-hidden bg-neutral-100 focus-visible:z-20 min-h-[44px] min-w-[44px] focus-visible:outline focus-visible:outline-2 focus-visible:outline-black"
+                    style={{ width: size.width, height: size.height }}
+                  >
+                    <span className="relative block h-full w-full">
+                      <ProjectMedia project={project} decorative eager sizes="400px" className="object-cover" />
+                    </span>
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        <div className="pointer-events-auto fixed bottom-20 left-1/2 z-10 flex -translate-x-1/2 gap-2">
+          <button
+            type="button"
+            onClick={() => {
+              const next = nextProjectRef.current % PROJECTS.length;
+              nextProjectRef.current += 1;
+              setCards((curr) => curr.map((c, i) => (i === 0 ? { projectIndex: next, entryProgress: getDistributedProgress(i, activeCount) } : c)));
+              cardsRef.current[0] = { projectIndex: next, entryProgress: getDistributedProgress(0, activeCount) };
+            }}
+            className="min-h-[44px] min-w-[44px] border border-black/15 bg-white px-3 text-xs tracking-[0.2em]"
+          >
+            Next
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              const prev = (cardsRef.current[0].projectIndex - 1 + PROJECTS.length) % PROJECTS.length;
+              setCards((curr) => curr.map((c, i) => (i === 0 ? { projectIndex: prev, entryProgress: getDistributedProgress(i, activeCount) } : c)));
+              cardsRef.current[0] = { projectIndex: prev, entryProgress: getDistributedProgress(0, activeCount) };
+            }}
+            className="min-h-[44px] min-w-[44px] border border-black/15 bg-white px-3 text-xs tracking-[0.2em]"
+          >
+            Prev
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <motion.div
@@ -283,7 +348,7 @@ export function InfiniteCanvas({ ready, introActive, onOpenProject }: Props) {
       onPan={(_, info) => nudgeVelocity(info.delta.y * -0.011)}
       aria-label="Moving project grid. Scroll or drag to move projects."
     >
-      {(!ready || introActive) && !reduceMotion &&
+      {(!ready || introActive) &&
         introExtraIndexes.map((projectIndex) => {
           const project = PROJECTS[projectIndex];
           const size = getCardSize(project, viewport);
@@ -294,19 +359,13 @@ export function InfiniteCanvas({ ready, introActive, onOpenProject }: Props) {
             Math.max(viewport.width, viewport.height);
           const delay =
             GRID_INTRO_DELAY_SECONDS +
-            Math.min(
-              INTRO_EXTRA_STAGGER_LIMIT_SECONDS,
-              INTRO_EXTRA_STAGGER_SECONDS * projectIndex,
-            );
+            Math.min(INTRO_EXTRA_STAGGER_LIMIT_SECONDS, INTRO_EXTRA_STAGGER_SECONDS * projectIndex);
 
           return (
             <div
               key={`intro-extra-${project.id}`}
               className="pointer-events-none absolute left-1/2 top-1/2"
-              style={{
-                transform: "translate(-50%, -50%)",
-                zIndex: projectIndex + 1,
-              }}
+              style={{ transform: "translate(-50%, -50%)", zIndex: projectIndex + 1 }}
               aria-hidden="true"
             >
               <motion.div
@@ -316,31 +375,16 @@ export function InfiniteCanvas({ ready, introActive, onOpenProject }: Props) {
                 initial={false}
                 animate={
                   ready
-                    ? {
-                        x: Math.cos(angle) * radius,
-                        y: -Math.sin(angle) * radius,
-                        scale: 1,
-                      }
-                    : { x: 0, y: 0, scale: INTRO_START_SCALE }
+                    ? { x: Math.cos(angle) * radius, y: -Math.sin(angle) * radius, scale: 1, opacity: 0 }
+                    : { x: 0, y: 0, scale: INTRO_START_SCALE, opacity: 1 }
                 }
                 transition={
                   ready
                     ? {
-                        x: {
-                          delay,
-                          duration: GRID_EXTRA_INTRO_TRAVEL_SECONDS,
-                          ease: EASE_POWER3_IN,
-                        },
-                        y: {
-                          delay,
-                          duration: GRID_EXTRA_INTRO_TRAVEL_SECONDS,
-                          ease: EASE_POWER3_IN,
-                        },
-                        scale: {
-                          delay,
-                          duration: GRID_EXTRA_INTRO_SCALE_SECONDS,
-                          ease: EASE_EXPO_OUT,
-                        },
+                        x: { delay, duration: GRID_EXTRA_INTRO_TRAVEL_SECONDS, ease: EASE_POWER3_IN },
+                        y: { delay, duration: GRID_EXTRA_INTRO_TRAVEL_SECONDS, ease: EASE_POWER3_IN },
+                        scale: { delay, duration: GRID_EXTRA_INTRO_SCALE_SECONDS, ease: EASE_EXPO_OUT },
+                        opacity: { delay: delay + 0.15, duration: 0.55, ease: EASE_POWER3_OUT },
                       }
                     : { duration: 0 }
                 }
@@ -360,105 +404,65 @@ export function InfiniteCanvas({ ready, introActive, onOpenProject }: Props) {
           );
         })}
 
-      <div
-        className="absolute inset-0"
-        inert={!ready || (introActive && !reduceMotion) ? true : undefined}
-      >
+      <div className="absolute inset-0" inert={!ready || introActive ? true : undefined}>
         {cards.map((card, slot) => {
           const project = PROJECTS[card.projectIndex];
           const size = getCardSize(project, viewport);
-          const position = getPathPosition(
-            card.projectIndex,
-            card.entryProgress,
-            viewport,
-            size.width,
-            size.height,
-          );
+          const position = getPathPosition(card.projectIndex, card.entryProgress, viewport, size.width, size.height);
           const introDelay =
             GRID_INTRO_DELAY_SECONDS +
-            Math.min(
-              INTRO_ACTIVE_STAGGER_LIMIT_SECONDS,
-              INTRO_ACTIVE_STAGGER_SECONDS * card.projectIndex,
-            );
-          const animateFromCenter = ready && introActive && !reduceMotion;
-          const cardAnimation = ready
-            ? { x: 0, y: 0, scale: 1 }
-            : {
-                x: -position.x,
-                y: -position.y,
-                scale: INTRO_START_SCALE,
-              };
+            Math.min(INTRO_ACTIVE_STAGGER_LIMIT_SECONDS, INTRO_ACTIVE_STAGGER_SECONDS * card.projectIndex);
+          const animateFromCenter = ready && introActive;
+          const cardAnimation = ready ? { x: 0, y: 0, scale: 1 } : { x: -position.x, y: -position.y, scale: INTRO_START_SCALE };
 
           return (
             <div
               key={`grid-slot-${slot}`}
               className={`absolute left-1/2 top-1/2 ${slot >= MOBILE_ACTIVE_MEDIA ? "hidden md:block" : ""}`}
-              style={{
-                transform: "translate(-50%, -50%)",
-                zIndex: slot + 1,
-              }}
+              style={{ transform: "translate(-50%, -50%)", zIndex: slot + 1 }}
             >
-              {/* Framer owns the inner intro offset; the frame loop owns this path transform. */}
               <div
                 ref={(element) => {
                   pathRefs.current[slot] = element;
                 }}
                 className="will-change-transform"
-                style={{
-                  transform: `translate3d(${position.x}px, ${position.y}px, 0)`,
-                }}
+                style={{ transform: `translate3d(${position.x}px, ${position.y}px, 0)` }}
               >
                 <motion.button
                   ref={(element) => {
                     cardRefs.current[slot] = element;
                   }}
+                  layoutId={`project-${project.id}`}
                   data-intro-card="active"
+                  data-slug={project.slug}
                   type="button"
-                  disabled={!ready || (introActive && !reduceMotion)}
+                  disabled={!ready || introActive}
+                  tabIndex={!ready || introActive ? -1 : 0}
                   onClick={() => onOpenProject(project)}
                   aria-label={`Open ${project.title} preview`}
-                  aria-hidden={!ready || (introActive && !reduceMotion) || undefined}
-                  className="group relative block overflow-hidden bg-neutral-100 focus-visible:z-20"
+                  className="group relative block overflow-hidden bg-neutral-100 focus-visible:z-20 min-h-[44px] min-w-[44px] focus-visible:outline focus-visible:outline-2 focus-visible:outline-black"
                   style={{ width: size.width, height: size.height }}
                   initial={false}
                   animate={cardAnimation}
                   onAnimationComplete={() => {
                     if (!animateFromCenter) return;
                     settledIntroSlotsRef.current.add(slot);
-                    cardRefs.current[slot]?.setAttribute(
-                      "data-intro-settled",
-                      "true",
-                    );
+                    cardRefs.current[slot]?.setAttribute("data-intro-settled", "true");
                   }}
                   transition={
                     animateFromCenter
                       ? {
-                          x: {
-                            delay: introDelay,
-                            duration: GRID_ACTIVE_INTRO_TRAVEL_SECONDS,
-                            ease: EASE_POWER2_IN_OUT,
-                          },
-                          y: {
-                            delay: introDelay,
-                            duration: GRID_ACTIVE_INTRO_TRAVEL_SECONDS,
-                            ease: EASE_POWER2_IN_OUT,
-                          },
-                          scale: {
-                            delay: introDelay,
-                            duration: GRID_ACTIVE_INTRO_SCALE_SECONDS,
-                            ease: EASE_POWER3_OUT,
-                          },
+                          x: { delay: introDelay, duration: GRID_ACTIVE_INTRO_TRAVEL_SECONDS, ease: EASE_POWER2_IN_OUT },
+                          y: { delay: introDelay, duration: GRID_ACTIVE_INTRO_TRAVEL_SECONDS, ease: EASE_POWER2_IN_OUT },
+                          scale: { delay: introDelay, duration: GRID_ACTIVE_INTRO_SCALE_SECONDS, ease: EASE_POWER3_OUT },
                         }
                       : { duration: 0 }
                   }
                 >
-                  <motion.span
-                    className="relative block h-full w-full"
-                    whileHover={{ scale: 1.015 }}
-                  >
+                  <motion.span className="relative block h-full w-full" whileHover={ready && !introActive ? { scale: 1.015 } : undefined}>
                     <ProjectMedia
                       project={project}
-                      playVideo={ready && !reduceMotion}
+                      playVideo={ready}
                       eager
                       sizes="(max-width: 767px) 68vw, 58vw"
                       className="select-none object-cover"

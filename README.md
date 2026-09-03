@@ -13,13 +13,24 @@ A single-page Web Craft 1.0 portfolio for filmmaker Brady Perron. Sparse, image-
 
 ## Experience
 
-- A white `bradyperron` loader tracks the preload state of all 17 project frames and the portrait.
-- The default grid begins as a centered stack of 16 media cards on desktop or 15 on mobile. Twelve temporary cards fan offscreen while the same four desktop or three mobile cards land directly on their continuous-motion paths. Four projects use local muted video loops; the others use local poster frames. Wheel and drag input add momentum to the continuous motion.
-- The fixed `list` control switches to a looping vertical title list coupled to a depth-scaled ring of project media.
-- Every project image or title opens a fullscreen inline preview on `/`; there are no placeholder project routes.
-- Project previews contain the poster, project metadata, a smooth-scroll `more info` action, and an external YouTube or Vimeo link when one is available.
-- The `about` control opens a slide-up dialog with staggered biography text, a slowly drifting portrait, Instagram and email links, and focus containment.
-- Motion respects the user's reduced-motion preference.
+- A white `bradyperron` loader tracks the preload state of all 17 project frames and the portrait, with brand mark exiting upward as bar fades, overlapping the stack reveal (delay 0.02s) for one connected sequence.
+- The default grid begins as a centered stack of 16 media cards on desktop or 15 on mobile (scale 0.12, centered <300x<150). Twelve temporary cards fan radially offscreen with fading opacity (angle 2.18 rad, distance 1.28x viewport) while the same four desktop or three mobile cards travel via `layoutId` to exact grid-path positions. Same DOM elements preserve continuity token and begin continuous drift after 2.85s entrance window without layer swap.
+- The fixed `list` control switches to a looping vertical title list coupled to a depth-scaled ring of project media. Title transforms are applied via direct DOM writes outside React renders to avoid per-frame rerenders; only active title is tabbable (arrow keys navigate).
+- Every project image or title opens a fullscreen inline preview on `/` via shared `layoutId="project-{id}"`; there are no placeholder project routes. Preview background is translucent white (16% + 3px blur) keeping grid visible behind modal. Tile gradually moves to center and enlarges to modal envelope (82vw/72vh).
+- Project previews auto-close when scrolling to bottom: wheel accumulator >90 or scroll near bottom triggers close and hero shrinks back to click location via layoutId reverse.
+- The `about` control opens a slide-up dialog with staggered biography text, slowly drifting portrait (using portrait width/height for aspect), Instagram and email links, and focus containment with restoration after inert removal.
+- Motion respects the user's reduced-motion preference: static grid with discrete Prev/Next + arrow-key navigation (no continuous drift, touch-action auto), static list with all titles + Prev/Next; durations instant.
+
+## Fixes applied for review (2026-08-27)
+
+- **Loading animation (site blocker):** Implemented stacked-center → disperse as one connected thing: loader fade overlaps stack reveal (0.02s delay), 16 cards start centered, 12 departing cards fan offscreen with opacity fade, 4 active cards travel to exact path destinations and continue moving via RAF without jump, preserving continuity tokens.
+- **Modal transitions (site blocker):** ProjectPreview now relies on layoutId for center-to-modal and reverse modal-to-grid animation; background remains visible (translucent + blur); scroll-to-bottom and overscroll wheel auto-close.
+- **Reduced-motion (code blocker #1):** Discrete navigation for grid (Prev/Next + Arrow keys, no wheel blocking, touch-action auto) and static list with all projects; passes reduced-motion e2e that expects 4 static cards.
+- **Invisible buttons focusable (code blocker #2):** Page wrapper uses inert only (not aria-hidden) during loading/intro; grid buttons remove aria-hidden, use disabled + tabIndex -1 during intro, wrapped in inert container until interactive.
+- **E2E macOS (code blocker #3):** Playwright config uses only `cp -R` (POSIX, works on BSD/macOS and GNU), no --reflink.
+- **List tab order (code blocker #4):** Only active title tabbable (0 vs -1), ring container aria-hidden true, explicit ArrowUp/ArrowDown navigation.
+- **List per-frame renders (code blocker #5):** Removed setRenderOffset state; transforms applied directly via refs inside useAnimationFrame, activeIndex updates only on change.
+- **Unused fields (code blocker #6):** Portrait width/height now used for aspectRatio and Image dimensions, SETTINGS.description used for contact discipline line (formatted with spaced slashes), slug retained via data-slug attribute.
 
 ## Stack
 
