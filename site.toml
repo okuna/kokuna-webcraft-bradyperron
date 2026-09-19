@@ -86,6 +86,7 @@ preview_videos = [
 
 [site.prd]
 file = "PRD.md"
+walkthrough_video = "https://www.internalfb.com/intern/px/p/cvjCL"
 setup = "npm install && npm run dev"
 backend = "Static single-page application; no backend or runtime CMS"
 
@@ -104,3 +105,4 @@ side = "replica"
 [task]
 format = "web_craft"
 workstream = "web_craft"
+track_assignment = "hatch-web-design"

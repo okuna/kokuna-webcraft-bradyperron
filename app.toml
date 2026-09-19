@@ -1,0 +1,14 @@
+# app.toml — AWS hosting contract for the Brady Perron Next.js app.
+# setup/build/start/test run inside the app-runner container (see
+# environment/Dockerfile and docker-compose.yml).
+
+[app]
+setup = "npm ci"
+build = "npm run build"
+start = "npx next start -p 3000 -H 0.0.0.0"
+test = "npm test"
+port = 3000
+health = "/"
+
+[app.production]
+start = "npx next start -p 3000 -H 0.0.0.0"
